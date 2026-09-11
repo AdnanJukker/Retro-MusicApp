@@ -1,0 +1,260 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require('typescript');
+
+// Exercise the actual TypeScript modules with only native audio/network/storage
+// replaced. No simulator or extra test framework is needed for these regressions.
+function loader(mocks = {}, timers = { setTimeout, clearTimeout }) {
+  const cache = new Map();
+  function load(name) {
+    if (name in mocks) return mocks[name];
+    if (!name.startsWith('@/')) return require(name);
+    if (cache.has(name)) return cache.get(name).exports;
+    const filename = path.join(__dirname, '../src', name.slice(2) + '.ts');
+    const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
+    }).outputText;
+    const module = { exports: {} };
+    cache.set(name, module);
+    new Function('require', 'module', 'exports', '__DEV__', 'setTimeout', 'clearTimeout', output)(load, module, module.exports, false, timers.setTimeout, timers.clearTimeout);
+    return module.exports;
+  }
+  return load;
+}
+
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+const a = { id: 'a', title: 'First track', source: 'music-api' };
+const b = { id: 'b', title: 'Second track', source: 'music-api' };
+const status = { currentTime: 0, duration: 180, playing: true, isLoaded: true, isBuffering: false, error: null, didJustFinish: false };
+
+function fixture({ deferSeek = false } = {}) {
+  const pending = [];
+  const played = [];
+  const saved = new Map();
+  const timers = new Map();
+  let listener;
+  let active = false;
+  let seek = null;
+  let writes = 0;
+  let finishSeek;
+  const audio = {
+    setStatusListener: (value) => { listener = value; },
+    reset: () => { active = false; },
+    loadAndPlay: async (url, track, signal) => { if (!signal.aborted) { played.push(track.id); active = true; } },
+    hasPlayer: () => active,
+    play: () => { active = true; },
+    pause: () => { active = false; },
+    seekTo: (value) => { seek = value; return deferSeek ? new Promise((resolve) => { finishSeek = resolve; }) : Promise.resolve(); },
+  };
+  const storage = {
+    getItem: async (key) => saved.get(key) ?? null,
+    setItem: async (key, value) => { writes++; saved.set(key, value); },
+    removeItem: async (key) => saved.delete(key),
+  };
+  const load = loader({
+    '@/services/audioEngine': audio,
+    '@/services/musicApi': {
+      getStreamUrlCached: (id, options) => new Promise((resolve, reject) => pending.push({ id, options, resolve, reject })),
+      invalidateStreamUrl: () => {},
+    },
+    '@react-native-async-storage/async-storage': storage,
+  }, { setTimeout: (fn) => { const key = Symbol(); timers.set(key, fn); return key; }, clearTimeout: (key) => timers.delete(key) });
+  const store = load('@/store/playerStore').usePlayerStore;
+  return { store, pending, played, saved, timers, finishSeek: () => finishSeek(), emit: (event = {}) => listener({ ...status, ...event }), active: () => active, seek: () => seek, writes: () => writes };
+}
+
+test('rapid track selection cancels the old request and only starts the newest track', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  f.store.getState().playTrack(b);
+  assert.equal(f.pending[0].options.signal.aborted, true);
+  f.pending[1].resolve('https://example.test/b');
+  await tick();
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  assert.deepEqual(f.played, ['b']);
+});
+
+test('pause while resolving prevents delayed autoplay and allows a new attempt', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  f.store.getState().pauseTrack();
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  assert.deepEqual(f.played, []);
+  f.store.getState().resumeTrack();
+  assert.equal(f.pending.length, 2);
+});
+
+test('changing tracks immediately stops the previous audio', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  assert.equal(f.active(), true);
+  f.store.getState().playTrack(b);
+  assert.equal(f.active(), false);
+});
+
+test('queue index clamps and a track missing from the supplied queue still plays itself', () => {
+  const f = fixture();
+  f.store.getState().playQueue([a, b], 99);
+  assert.equal(f.store.getState().currentIndex, 1);
+  f.store.getState().playQueue([a, b], NaN);
+  assert.equal(f.store.getState().currentIndex, 0);
+  f.store.getState().playTrack(a, [b]);
+  assert.equal(f.store.getState().queue[0].id, 'a');
+});
+
+test('demo tracks never reach the streaming service', () => {
+  const f = fixture();
+  f.store.getState().playTrack({ id: 't1', title: 'Demo' });
+  assert.equal(f.pending.length, 0);
+  assert.match(f.store.getState().error, /demo archive/);
+});
+
+test('native playback errors retry once, then stop with a recoverable error', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit({ error: 'expired' });
+  assert.equal(f.pending.length, 2);
+  assert.equal(f.pending[1].options.forceRefresh, true);
+  f.pending[1].resolve('https://example.test/refreshed');
+  await tick();
+  f.emit({ error: 'still failed' });
+  assert.equal(f.pending.length, 2);
+  assert.equal(f.store.getState().isLoading, false);
+  assert.match(f.store.getState().error, /Playback failed/);
+});
+
+test('history records actual playback, keeps unique tracks, and avoids progress storage writes', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  assert.equal(f.store.getState().history.length, 0);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit();
+  await tick();
+  const writes = f.writes();
+  f.emit({ currentTime: 1 });
+  f.emit({ currentTime: 2 });
+  await tick();
+  assert.equal(f.writes(), writes);
+  assert.deepEqual(f.store.getState().history.map((item) => item.id), ['a']);
+});
+
+test('favorites and follows rehydrate without restoring playback or temporary errors', async () => {
+  const f = fixture();
+  f.store.getState().toggleFavorite(a);
+  f.store.getState().toggleFollowArtist('artist');
+  f.store.getState().playTrack(b);
+  await tick();
+  const value = JSON.parse(f.saved.get('hifi-library-v1'));
+  assert.deepEqual(Object.keys(value.state).sort(), ['favorites', 'followedArtists', 'history', 'repeat', 'shuffle']);
+  const restored = fixture();
+  restored.saved.set('hifi-library-v1', JSON.stringify(value));
+  await restored.store.persist.rehydrate();
+  assert.equal(restored.store.getState().favorites[0].id, 'a');
+  assert.deepEqual(restored.store.getState().followedArtists, ['artist']);
+  assert.equal(restored.store.getState().queue.length, 0);
+  assert.equal(restored.store.getState().isPlaying, false);
+});
+
+test('seek clamps position and ignores non-finite values', async () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit();
+  f.store.getState().seekTo(999);
+  await tick();
+  assert.equal(f.seek(), 180);
+  f.store.getState().seekTo(NaN);
+  assert.equal(f.seek(), 180);
+});
+
+test('loading timeout cancels the stream and exposes retry', () => {
+  const f = fixture();
+  f.store.getState().playTrack(a);
+  [...f.timers.values()][0]();
+  assert.equal(f.pending[0].options.signal.aborted, true);
+  assert.equal(f.store.getState().isLoading, false);
+  assert.match(f.store.getState().error, /too long/);
+});
+
+test('repeat and shuffle respect queue boundaries', () => {
+  const { nextQueueIndex } = loader()('@/utils/queue');
+  assert.equal(nextQueueIndex(0, 0, false, 'all'), null);
+  assert.equal(nextQueueIndex(1, 0, true, 'off'), null);
+  assert.equal(nextQueueIndex(1, 0, false, 'one'), 0);
+  assert.equal(nextQueueIndex(3, 2, false, 'off'), null);
+  assert.equal(nextQueueIndex(3, 2, false, 'all'), 0);
+  assert.equal(nextQueueIndex(3, 1, false, 'one'), 2);
+  for (let i = 0; i < 100; i++) assert.notEqual(nextQueueIndex(3, 1, true, 'all'), 1);
+});
+
+test('time readouts tolerate unknown durations and never round forward', () => {
+  const { formatDuration, formatLongDuration } = loader()('@/utils/format');
+  assert.equal(formatDuration(59.9), '0:59');
+  assert.equal(formatDuration(Infinity), '0:00');
+  assert.equal(formatDuration(-10), '0:00');
+  assert.equal(formatLongDuration(0), '0 MIN');
+});
+
+test('previous returns to the actual prior selection after shuffle', () => {
+  const f = fixture();
+  f.store.getState().playQueue([a, b, { ...a, id: 'c' }], 0);
+  f.store.getState().toggleShuffle();
+  f.store.getState().nextTrack();
+  assert.notEqual(f.store.getState().currentIndex, 0);
+  f.store.getState().previousTrack();
+  assert.equal(f.store.getState().currentIndex, 0);
+});
+
+test('pausing during repeat-one seek prevents delayed autoplay', async () => {
+  const f = fixture({ deferSeek: true });
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.store.getState().toggleRepeat();
+  f.store.getState().toggleRepeat();
+  f.emit({ didJustFinish: true, playing: false });
+  f.store.getState().pauseTrack();
+  f.finishSeek();
+  await tick();
+  assert.equal(f.active(), false);
+});
+
+test('audio engine detaches the previous player and rejects its delayed events', async () => {
+  const players = [];
+  const received = [];
+  const load = loader({
+    'expo-audio': {
+      setAudioModeAsync: async () => {},
+      createAudioPlayer: () => {
+        const player = {
+          paused: false, removed: false, detached: false,
+          addListener: (_name, listener) => { player.emit = listener; return { remove: () => { player.detached = true; } }; },
+          play: () => {}, pause: () => { player.paused = true; },
+          remove: () => { player.removed = true; },
+          setActiveForLockScreen: () => {},
+        };
+        players.push(player);
+        return player;
+      },
+    },
+  });
+  const engine = load('@/services/audioEngine');
+  engine.setStatusListener((event) => received.push(event.id));
+  assert.equal(players.length, 0);
+  await engine.loadAndPlay('https://example.test/a', a, new AbortController().signal);
+  await engine.loadAndPlay('https://example.test/b', b, new AbortController().signal);
+  players[0].emit({ id: 'old', didJustFinish: true });
+  players[1].emit({ id: 'new' });
+  assert.deepEqual(received, ['new']);
+  assert.equal(players[0].removed && players[0].paused && players[0].detached, true);
+});

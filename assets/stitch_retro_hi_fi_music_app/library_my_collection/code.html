@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hi-Fi Audio Archive - My Collection</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Manrope:wght@400;500;600;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#775600",
+            "background": "#fff8f4",
+            "secondary-container": "#ffcd6c",
+            "primary-fixed": "#ffdbce",
+            "tertiary-fixed": "#e3e5c4",
+            "on-primary-fixed-variant": "#802a00",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#34302b",
+            "on-tertiary": "#ffffff",
+            "surface": "#fff8f4",
+            "primary-fixed-dim": "#ffb59a",
+            "secondary-fixed": "#ffdea5",
+            "on-primary-fixed": "#380d00",
+            "surface-container-low": "#fbf2eb",
+            "surface-container-highest": "#eae1da",
+            "outline-variant": "#ddc0b7",
+            "inverse-primary": "#ffb59a",
+            "on-tertiary-fixed-variant": "#464930",
+            "tertiary-fixed-dim": "#c6c9a9",
+            "on-secondary-fixed-variant": "#5d4200",
+            "surface-container": "#f5ece5",
+            "primary": "#9c3e15",
+            "surface-tint": "#a04118",
+            "inverse-on-surface": "#f8efe8",
+            "surface-bright": "#fff8f4",
+            "tertiary-container": "#74775b",
+            "on-secondary": "#ffffff",
+            "error": "#ba1a1a",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-dim": "#e1d8d2",
+            "secondary-fixed-dim": "#f0bf60",
+            "surface-container-lowest": "#ffffff",
+            "primary-container": "#bd562c",
+            "on-primary-container": "#fffbff",
+            "on-tertiary-fixed": "#1a1d09",
+            "surface-container-high": "#f0e7e0",
+            "on-secondary-fixed": "#261900",
+            "outline": "#8a726a",
+            "on-background": "#1f1b17",
+            "secondary": "#7b5800",
+            "on-surface": "#1f1b17",
+            "tertiary": "#5b5e44",
+            "error-container": "#ffdad6",
+            "surface-variant": "#eae1da",
+            "on-tertiary-container": "#fdffde",
+            "on-surface-variant": "#56423b"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin": "1rem",
+            "space-lg": "1.5rem",
+            "margin-tablet": "2rem",
+            "space-xl": "2.5rem",
+            "margin-desktop": "3rem",
+            "space-md": "1rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "tech-data-md": ["Space Mono"],
+            "display-hero": ["Barlow Condensed"],
+            "tech-data-lg": ["Space Mono"],
+            "tech-data-sm": ["Space Mono"],
+            "label-caps": ["Barlow Condensed"],
+            "headline-md": ["Barlow Condensed"],
+            "headline-lg": ["Barlow Condensed"],
+            "headline-sm": ["Barlow Condensed"],
+            "display-hero-mobile": ["Barlow Condensed"],
+            "headline-lg-mobile": ["Barlow Condensed"],
+            "body-sm": ["Manrope"],
+            "body-md": ["Manrope"],
+            "body-lg": ["Manrope"]
+          },
+          "fontSize": {
+            "tech-data-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "400" }],
+            "display-hero": ["56px", { "lineHeight": "56px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "tech-data-lg": ["15px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "tech-data-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+            "label-caps": ["13px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "28px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-lg": ["36px", { "lineHeight": "40px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "22px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "display-hero-mobile": ["38px", { "lineHeight": "40px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["28px", { "lineHeight": "32px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    /* Analog fine grain texture */
+    .analog-texture {
+      background-image: radial-gradient(rgba(36, 32, 28, 0.05) 1px, transparent 0);
+      background-size: 4px 4px;
+    }
+    /* Mechanical chassis recess */
+    .recessed-chassis {
+      box-shadow: inset 0 1px 2px rgba(36, 32, 28, 0.08);
+    }
+    /* Mechanical button press down */
+    .btn-mechanical:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed analog-texture pb-36">
+<!-- Android Retro Status Bar -->
+<header class="w-full bg-surface-container-low px-space-md py-1 border-b border-outline-variant/30 flex justify-between items-center text-on-surface-variant font-tech-data-sm text-tech-data-sm select-none">
+<div class="flex items-center space-x-2">
+<span class="font-bold tracking-widest text-on-surface">SYS.ARCHIVE</span>
+<span class="text-primary font-bold">[ONLINE]</span>
+</div>
+<div class="flex items-center space-x-3">
+<span class="tracking-wider">REC: READY</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="signal_cellular_alt">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="battery_5_bar">battery_5_bar</span>
+<span class="font-tech-data-sm">11:42</span>
+</span>
+</div>
+</header>
+<!-- TopAppBar Component (from Shared Components JSON) -->
+<header class="flex justify-between items-center w-full px-space-md py-space-sm h-14 bg-surface dark:bg-inverse-surface border-b border-outline-variant/30 dark:border-outline/30 sticky top-0 z-30 shadow-none">
+<div class="flex items-center gap-2">
+<button aria-label="Deck Equalizer" class="flex items-center justify-center p-1 text-primary dark:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors duration-150 active:translate-y-px">
+<span class="material-symbols-outlined text-primary text-[22px]" data-icon="graphic_eq">graphic_eq</span>
+</button>
+<span class="text-headline-sm font-headline-sm tracking-widest text-primary dark:text-primary-fixed uppercase font-bold">HI-FI AUDIO ARCHIVE</span>
+</div>
+<!-- Web nav cluster (Responsive Pivot) -->
+<nav class="hidden md:flex items-center space-x-6">
+<a class="text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider hover:text-primary transition-colors" href="#">Search</a>
+<a class="text-primary dark:text-inverse-primary font-tech-data-sm text-tech-data-sm uppercase tracking-wider border-b-2 border-primary" href="#">Library</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider hover:text-primary transition-colors" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-2">
+<button aria-label="Audio Tuning Calibration" class="flex items-center justify-center p-1 text-primary dark:text-inverse-primary hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors duration-150 active:translate-y-px">
+<span class="material-symbols-outlined text-primary text-[22px]" data-icon="tune">tune</span>
+</button>
+</div>
+</header>
+<!-- Main Rack Frame / Content Area -->
+<main class="w-full max-w-6xl mx-auto px-space-md sm:px-space-lg pt-space-md flex-1">
+<!-- Header Bay: Title & Technical Specs -->
+<div class="flex flex-col md:flex-row md:items-end justify-between pb-space-sm border-b border-outline-variant/40 gap-3">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-primary text-on-primary font-tech-data-sm text-tech-data-sm px-1.5 py-0.5 tracking-widest uppercase">CATALOG BAY #04</span>
+<span class="text-tertiary font-tech-data-sm text-tech-data-sm tracking-widest">MASTER STORAGE REEL</span>
+</div>
+<h1 class="text-display-hero-mobile md:text-display-hero font-display-hero uppercase tracking-tight text-on-surface m-0 leading-none">
+          My Collection
+        </h1>
+</div>
+<!-- Tape Counter & Calibrations Readout -->
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-surface-container px-3 py-1.5 border border-outline-variant/50 recessed-chassis">
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant mr-2">TAPE COUNTER:</span>
+<div class="flex space-x-1 font-tech-data-lg text-tech-data-lg text-on-surface tracking-wider bg-surface-container-highest px-2 py-0.5 border border-outline-variant/30">
+<span>0</span><span>8</span><span>4</span><span>2</span>
+</div>
+<button class="ml-2 w-4 h-4 bg-outline-variant/30 hover:bg-primary border border-outline-variant/80 flex items-center justify-center btn-mechanical" title="Reset Counter">
+<span class="block w-1.5 h-1.5 bg-on-surface-variant"></span>
+</button>
+</div>
+<div class="hidden sm:flex border border-outline-variant/40 bg-surface-container-low px-2.5 py-1.5 font-tech-data-sm text-tech-data-sm text-secondary">
+<span>[ BIAS: NORMAL ]</span>
+</div>
+</div>
+</div>
+<!-- Editorial Retro Tab Bar -->
+<div class="w-full mt-space-sm border-b border-outline-variant/40 flex overflow-x-auto no-scrollbar">
+<nav aria-label="Library Sections" class="flex space-x-8">
+<button class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-primary py-3 px-1 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+<span>Liked</span>
+<span class="text-tech-data-sm font-tech-data-sm text-tertiary">(342)</span>
+</button>
+<button class="font-label-caps text-label-caps uppercase text-primary border-b-2 border-primary py-3 px-1 font-bold flex items-center gap-1.5 whitespace-nowrap">
+<span>Playlists</span>
+<span class="bg-primary-container text-on-primary-container text-tech-data-sm font-tech-data-sm px-1 py-0.2">05</span>
+</button>
+<button class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-primary py-3 px-1 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+<span>Albums</span>
+<span class="text-tech-data-sm font-tech-data-sm text-outline">(89)</span>
+</button>
+<button class="font-label-caps text-label-caps uppercase text-on-surface-variant hover:text-primary py-3 px-1 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+<span>Artists</span>
+<span class="text-tech-data-sm font-tech-data-sm text-outline">(41)</span>
+</button>
+</nav>
+</div>
+<!-- FEATURED SECTION: Liked Tracks Vintage Collector Box Set -->
+<section aria-labelledby="featured-liked-heading" class="mt-space-md">
+<div class="border border-outline-variant/60 bg-surface-container-low p-space-md sm:p-space-lg recessed-chassis relative overflow-hidden">
+<!-- Subtle Cassette Corner Stamp / Watermark -->
+<div class="absolute right-0 top-0 translate-x-4 -translate-y-4 pointer-events-none opacity-10">
+<span class="material-symbols-outlined text-[160px]" data-icon="cassette">mobile_share_stack</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-center">
+<!-- Box Set Artwork / Chassis Representation -->
+<div class="lg:col-span-4 flex justify-center">
+<div class="relative w-full max-w-[260px] aspect-square bg-inverse-surface border-2 border-on-surface shadow-sm p-3 flex flex-col justify-between">
+<!-- Vintage Box Set Spine & Tape Window -->
+<div class="flex justify-between items-center border-b border-outline/30 pb-2">
+<span class="text-surface font-tech-data-sm text-tech-data-sm uppercase tracking-widest font-bold">TYPE-II CrO₂</span>
+<span class="text-primary-fixed font-tech-data-sm text-tech-data-sm tracking-wider">[HX-PRO]</span>
+</div>
+<!-- Center Spool Graphic -->
+<div class="my-auto border border-outline/40 bg-inverse-surface/80 p-3 flex items-center justify-around">
+<div class="w-10 h-10 rounded-full border-2 border-dashed border-outline-variant flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+</div>
+<div class="h-2 w-20 bg-surface-variant/20 border border-outline/30 relative">
+<div class="absolute left-1/3 top-0 bottom-0 w-8 bg-primary"></div>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-dashed border-outline-variant flex items-center justify-center">
+<div class="w-3 h-3 rounded-full bg-surface"></div>
+</div>
+</div>
+<div class="pt-2 border-t border-outline/30 flex justify-between items-center text-surface-dim font-tech-data-sm text-tech-data-sm">
+<span>INDEX #FAV-01</span>
+<span>DOLBY B-C NR</span>
+</div>
+</div>
+</div>
+<!-- Metadata & Audio Transport Info -->
+<div class="lg:col-span-8 flex flex-col justify-between">
+<div>
+<div class="flex flex-wrap items-center gap-2 mb-2">
+<span class="bg-primary text-on-primary font-tech-data-sm text-tech-data-sm px-2 py-0.5 uppercase tracking-widest font-bold">ARCHIVE BOX SET</span>
+<span class="border border-outline font-tech-data-sm text-tech-data-sm px-2 py-0.5 text-on-surface-variant uppercase">[ STEREO / HIGH FIDELITY ]</span>
+<span class="font-tech-data-sm text-tech-data-sm text-tertiary uppercase">VAULT ID: #LKD-1982</span>
+</div>
+<h2 class="text-headline-lg-mobile sm:text-headline-lg font-headline-lg text-on-surface uppercase tracking-wide" id="featured-liked-heading">
+                Liked Tracks &amp; Curated Favorites
+              </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-xl mt-1">
+                Preserved analog cuts, pristine vinyl rips, and primary magnetic tape takes flagged across all studio sessions and soundboards.
+              </p>
+</div>
+<!-- Stats Bar & Quick Play Action -->
+<div class="mt-space-md pt-space-sm border-t border-outline-variant/40 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-6 font-tech-data-md text-tech-data-md">
+<div>
+<span class="text-on-surface-variant block text-tech-data-sm font-tech-data-sm uppercase">Total Stored</span>
+<span class="font-bold text-on-surface text-tech-data-lg font-tech-data-lg">342 Tracks Saved</span>
+</div>
+<div class="border-l border-outline-variant/50 pl-4">
+<span class="text-on-surface-variant block text-tech-data-sm font-tech-data-sm uppercase">Telemetry</span>
+<span class="text-secondary font-bold">Last added: Yesterday</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button aria-label="Play Liked Tracks Archive" class="btn-mechanical bg-primary text-on-primary px-space-md py-2 flex items-center gap-2 border border-on-surface font-label-caps text-label-caps uppercase font-bold tracking-wider hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Instant Cue &amp; Play</span>
+</button>
+<button class="btn-mechanical bg-surface text-on-surface px-space-sm py-2 border border-outline flex items-center justify-center hover:bg-surface-container transition-colors" title="Shuffle Box Set">
+<span class="material-symbols-outlined text-[18px]" data-icon="shuffle">shuffle</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BELOW: 'Your Playlists' Collection (Retro Record Crate Grid) -->
+<section aria-labelledby="playlists-heading" class="mt-space-lg mb-8">
+<!-- Crate Index Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-outline-variant/40 gap-2 mb-space-md">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="inventory_2">inventory_2</span>
+<h2 class="text-headline-md font-headline-md uppercase tracking-wider text-on-surface m-0" id="playlists-heading">
+            Your Playlists
+          </h2>
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant ml-2">[ CRATE DECK A-Z ]</span>
+</div>
+<!-- Sorting Rocker Switch -->
+<div class="flex items-center border border-outline-variant/60 font-tech-data-sm text-tech-data-sm bg-surface-container">
+<span class="px-2 py-1 bg-surface-container-highest text-on-surface font-bold border-r border-outline-variant/40">RECENT</span>
+<button class="px-2 py-1 text-on-surface-variant hover:text-primary transition-colors">ALPHABETICAL</button>
+<button class="px-2 py-1 text-on-surface-variant hover:text-primary border-l border-outline-variant/40 transition-colors">DURATION</button>
+</div>
+</div>
+<!-- Bento Grid Crate Presentation -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md">
+<!-- Crate Card 1: Late Night Drive -->
+<article class="border border-outline-variant/60 bg-surface-container p-space-sm flex flex-col justify-between hover:border-outline transition-colors group">
+<div class="relative aspect-square w-full bg-surface-container-highest border border-outline-variant/50 overflow-hidden mb-space-sm">
+<img class="w-full h-full object-cover grayscale-[20%] group-hover:scale-[1.02] transition-transform duration-300" data-alt="A vintage 1980s audio cassette tape resting on a warm analog walnut console desk under moody burnt orange and amber studio lamp lighting. The cassette housing features matte cream plastic with technical typography labels and exposed bronze magnetic tape spools. Clean, minimal composition evoking physical retro electronics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7MH-cGt49jequxIBjfYZtfD30bOPYi9GicHr7blT9Th7Hmj5_P6ZL0D94srkeiS8JwotszQVoFnRz74V72m86sLufRiIeRTTE_0Gdfoh7SOQ3Sa2wSaNyx2wFVO2IGDAJWt7KCPIB1q3CwgCKNRIa_L8R3HKLgK0dRhq7svpGOQFI5PsDOsElCpesdBafPEeS0YyOB-kwY7WOgGyRiSoSoLTUq_WTxry3xJiBTybOQStSyJdj-Ryt"/>
+<div class="absolute top-2 left-2 bg-surface/90 px-1.5 py-0.5 border border-outline/30 font-tech-data-sm text-tech-data-sm text-on-surface font-bold tracking-widest">
+              CRATE #01
+            </div>
+<div class="absolute bottom-2 right-2 bg-primary px-1.5 py-0.5 font-tech-data-sm text-tech-data-sm text-on-primary tracking-widest font-bold">
+              TYPE I FERRIC
+            </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-headline-sm font-headline-sm uppercase text-on-surface tracking-wide group-hover:text-primary transition-colors">
+                Late Night Drive
+              </h3>
+<button aria-label="Play Late Night Drive" class="btn-mechanical text-on-surface-variant hover:text-primary p-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-1 mt-0.5">
+              Lo-fi tape saturation, ambient road reverb, and warm synth pulses.
+            </p>
+</div>
+<div class="mt-space-sm pt-2 border-t border-outline-variant/40 flex justify-between items-center font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>24 TRACKS</span>
+<span class="text-on-surface-variant">1 HR 38 MIN</span>
+</div>
+</article>
+<!-- Crate Card 2: Sunday Vinyl -->
+<article class="border border-outline-variant/60 bg-surface-container p-space-sm flex flex-col justify-between hover:border-outline transition-colors group">
+<div class="relative aspect-square w-full bg-surface-container-highest border border-outline-variant/50 overflow-hidden mb-space-sm">
+<img class="w-full h-full object-cover grayscale-[15%] group-hover:scale-[1.02] transition-transform duration-300" data-alt="An authentic vintage record player turntable with an anodized aluminum tonearm gently resting on a heavy black vinyl groove. Soft natural morning sunlight casts long warm shadows across an unvarnished oak listening room credenza. Muted natural textures with deep espresso, beige, and mustard tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVG-tzFVKcNAblACGLGnXePbaJMaqr282wKKeT8KOWQ3U5dxYSvWlQyZcxum-6vn2LixxIyvto_1M9e4Fzu9Km7d0PBODPm3ILIV93n10LPLxCkblumNla3WN-onNqZgzjse4Y-sHnEoOrhL1e6PGSrMae-eI_dHmCsc_xCV3C4sf725H0zbaxbo__D_T_HfQFbj7St9z0XWgGDYU_8Ce_mAukQb21KDlgJNQGi-N1Mj4q2PAgEuzT"/>
+<div class="absolute top-2 left-2 bg-surface/90 px-1.5 py-0.5 border border-outline/30 font-tech-data-sm text-tech-data-sm text-on-surface font-bold tracking-widest">
+              CRATE #02
+            </div>
+<div class="absolute bottom-2 right-2 bg-secondary px-1.5 py-0.5 font-tech-data-sm text-tech-data-sm text-on-primary tracking-widest font-bold">
+              33 ⅓ RPM LP
+            </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-headline-sm font-headline-sm uppercase text-on-surface tracking-wide group-hover:text-primary transition-colors">
+                Sunday Vinyl
+              </h3>
+<button aria-label="Play Sunday Vinyl" class="btn-mechanical text-on-surface-variant hover:text-primary p-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-1 mt-0.5">
+              Acoustic folk, gentle bossa nova, and dusty pressing room warmth.
+            </p>
+</div>
+<div class="mt-space-sm pt-2 border-t border-outline-variant/40 flex justify-between items-center font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>48 TRACKS</span>
+<span class="text-on-surface-variant">3 HRS 12 MIN</span>
+</div>
+</article>
+<!-- Crate Card 3: Old School Coffee & Jazz -->
+<article class="border border-outline-variant/60 bg-surface-container p-space-sm flex flex-col justify-between hover:border-outline transition-colors group">
+<div class="relative aspect-square w-full bg-surface-container-highest border border-outline-variant/50 overflow-hidden mb-space-sm">
+<img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" data-alt="A classic Blue Note inspired graphic album cover design featuring high-contrast duotone photography of a jazz tenor saxophone player bathed in deep espresso brown and warm cream paper grain. Crisp sans-serif grid typography sits in the margins with geometric asymmetric modernist balance." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvPSBazTlSBlhYDtFWMvhi0-APJIkmDazdIAOyzqjeMNuDC515q_MLtrBrajpxeSbWQFqPYHZl362ewvMJE6kp4QyT_1z6H4KmeZF7kCaJHRkRo5eIkDDi3WPdO3je51kHPjfPEqgd8l9weFgwYEii732Zt8cfAJYX6DZhLo0PgjA5jxKKbmRmfhZg53RB4KTL6OhuV9ulRjHsR8NEuZWhzYqAOXU7ymD4vMS9zUxuFJNk32QtFzEl"/>
+<div class="absolute top-2 left-2 bg-surface/90 px-1.5 py-0.5 border border-outline/30 font-tech-data-sm text-tech-data-sm text-on-surface font-bold tracking-widest">
+              CRATE #03
+            </div>
+<div class="absolute bottom-2 right-2 bg-inverse-surface px-1.5 py-0.5 font-tech-data-sm text-tech-data-sm text-surface tracking-widest font-bold">
+              MONO / ARCHIVAL
+            </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-headline-sm font-headline-sm uppercase text-on-surface tracking-wide group-hover:text-primary transition-colors">
+                Old School Coffee &amp; Jazz
+              </h3>
+<button aria-label="Play Old School Coffee and Jazz" class="btn-mechanical text-on-surface-variant hover:text-primary p-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-1 mt-0.5">
+              Hard bop sessions, upright bass plucks, and vintage microphone hiss.
+            </p>
+</div>
+<div class="mt-space-sm pt-2 border-t border-outline-variant/40 flex justify-between items-center font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>62 TRACKS</span>
+<span class="text-on-surface-variant">4 HRS 05 MIN</span>
+</div>
+</article>
+<!-- Crate Card 4: Indie Rotation -->
+<article class="border border-outline-variant/60 bg-surface-container p-space-sm flex flex-col justify-between hover:border-outline transition-colors group">
+<div class="relative aspect-square w-full bg-surface-container-highest border border-outline-variant/50 overflow-hidden mb-space-sm">
+<img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" data-alt="A screen-printed vintage gig poster aesthetic artwork on textured unbleached cardstock paper. Distressed typography and minimalist geometric shapes rendered with burnt orange and mustard yellow pigment ink. Mid-century tactile printmaker finish with subtle ink misregistration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYMn1qxRFAyD98HpZAgV9OGEKJUYQdewf78cmg7mRhtLmXV15bljo7YBHzGklrZkjoXaZ7RZ8k6QzIE_WmvLZm4JuV5Sh527hlShyKTSQJ_G5K1FGEhxO_0aAIBn9ZzW-Da9RODMgUE-uA2Ezpm8ULp1s-4pP_nMhVNxqIbp6oKWkI_miusESoosGi91tGMHMm8XcEi29_YsgFPmxACTDRjNbWlGXNCbaZYE14ztb-NQhkAu2fI8e-"/>
+<div class="absolute top-2 left-2 bg-surface/90 px-1.5 py-0.5 border border-outline/30 font-tech-data-sm text-tech-data-sm text-on-surface font-bold tracking-widest">
+              CRATE #04
+            </div>
+<div class="absolute bottom-2 right-2 bg-tertiary px-1.5 py-0.5 font-tech-data-sm text-tech-data-sm text-on-tertiary tracking-widest font-bold">
+              POSTER ART
+            </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-headline-sm font-headline-sm uppercase text-on-surface tracking-wide group-hover:text-primary transition-colors">
+                Indie Rotation
+              </h3>
+<button aria-label="Play Indie Rotation" class="btn-mechanical text-on-surface-variant hover:text-primary p-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-1 mt-0.5">
+              Jangle pop guitars, low-output pickups, and uncompressed drums.
+            </p>
+</div>
+<div class="mt-space-sm pt-2 border-t border-outline-variant/40 flex justify-between items-center font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>35 TRACKS</span>
+<span class="text-on-surface-variant">2 HRS 15 MIN</span>
+</div>
+</article>
+<!-- Crate Card 5: Analog Synth Wave 1982 -->
+<article class="border border-outline-variant/60 bg-surface-container p-space-sm flex flex-col justify-between hover:border-outline transition-colors group">
+<div class="relative aspect-square w-full bg-surface-container-highest border border-outline-variant/50 overflow-hidden mb-space-sm">
+<img class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" data-alt="A vintage 1970s modular synthesizer rack faceplate showing intricate patch cables, anodized aluminum rotary potentiometer knobs, and amber LED indicator jewels. Clean architectural lighting highlights tactile brushed metal surfaces and stamped frequency legends." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDqw1ygVQQTBxQQhMB5g99RSI25Pu2x76ljOBbOLodj2KTLGAmYAs8SjqMzw2P04mtoaJGpoB_pp-15xIvmRWhcxf1L7_TNQZgmLmzSsa042MhmJd4DsfOpD6uxNlYvbPNx3rg5wzEPxvjgEua7Lh4PwM7sAmSXRc-8C8jgre71a4GpxPHCpPtNpPaFBtNsPSFRQbH_8C0VacxABHj9PqaqA8X-eLKe2UgimBBysPPE5TlzwAzA63L"/>
+<div class="absolute top-2 left-2 bg-surface/90 px-1.5 py-0.5 border border-outline/30 font-tech-data-sm text-tech-data-sm text-on-surface font-bold tracking-widest">
+              CRATE #05
+            </div>
+<div class="absolute bottom-2 right-2 bg-primary-container px-1.5 py-0.5 font-tech-data-sm text-tech-data-sm text-on-primary-container tracking-widest font-bold">
+              CV / GATE
+            </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<h3 class="text-headline-sm font-headline-sm uppercase text-on-surface tracking-wide group-hover:text-primary transition-colors">
+                Analog Synth Wave 1982
+              </h3>
+<button aria-label="Play Analog Synth Wave 1982" class="btn-mechanical text-on-surface-variant hover:text-primary p-0.5">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_circle">play_circle</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-1 mt-0.5">
+              Monophonic VCOs, ladder filters, and rhythmic analog arpeggiations.
+            </p>
+</div>
+<div class="mt-space-sm pt-2 border-t border-outline-variant/40 flex justify-between items-center font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>19 TRACKS</span>
+<span class="text-on-surface-variant">1 HR 12 MIN</span>
+</div>
+</article>
+<!-- New Playlist / Blank Crate Slot -->
+<article class="border border-dashed border-outline-variant/80 bg-surface-container-low/50 p-space-sm flex flex-col items-center justify-center text-center hover:bg-surface-container transition-colors cursor-pointer group min-h-[300px]">
+<div class="w-16 h-16 border border-outline flex items-center justify-center bg-surface group-hover:border-primary transition-colors mb-3">
+<span class="material-symbols-outlined text-outline group-hover:text-primary text-[28px]" data-icon="add">add</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-wider group-hover:text-primary transition-colors">Create Tape Deck</span>
+<p class="font-tech-data-sm text-tech-data-sm text-on-surface-variant max-w-[200px] mt-1">
+            INITIALIZE NEW BLANK CRATE WITH CUSTOM BIAS &amp; LINER NOTES
+          </p>
+</article>
+</div>
+</section>
+</main>
+<!-- PERSISTENT VINTAGE MINI PLAYER (Docked immediately above the BottomNavBar) -->
+<aside aria-label="Audio Deck Transport Console" class="fixed bottom-14 left-0 w-full z-40 bg-surface-container-high border-t border-outline-variant/40 recessed-chassis px-space-md py-2">
+<div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+<!-- Currently Loaded Cassette/Track Metadata -->
+<div class="flex items-center gap-3 overflow-hidden">
+<div class="w-10 h-10 bg-inverse-surface border border-outline flex-shrink-0 flex items-center justify-center relative">
+<div class="w-4 h-4 rounded-full border border-surface-variant flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+</div>
+<div class="truncate">
+<div class="flex items-center gap-2">
+<span class="text-headline-sm font-headline-sm text-on-surface uppercase truncate">Koto Song (Take 2)</span>
+<span class="bg-primary text-on-primary font-tech-data-sm text-[9px] px-1 font-bold">REC</span>
+</div>
+<p class="font-tech-data-sm text-tech-data-sm text-on-surface-variant truncate">
+            The Dave Brubeck Quartet — Master Reel 1964
+          </p>
+</div>
+</div>
+<!-- Realtime Analog VU Telemetry (Decorative Hardware Readout) -->
+<div class="hidden lg:flex items-center gap-3 bg-surface px-3 py-1 border border-outline-variant/50">
+<div class="flex flex-col items-center">
+<span class="font-tech-data-sm text-[8px] text-tertiary tracking-tighter">VU CH-L</span>
+<div class="w-16 h-2 bg-surface-container-highest overflow-hidden relative border border-outline-variant/30">
+<div class="absolute left-0 top-0 bottom-0 w-11 bg-primary"></div>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-tech-data-sm text-[8px] text-tertiary tracking-tighter">VU CH-R</span>
+<div class="w-16 h-2 bg-surface-container-highest overflow-hidden relative border border-outline-variant/30">
+<div class="absolute left-0 top-0 bottom-0 w-9 bg-primary"></div>
+</div>
+</div>
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface font-bold">+1.5 dB</span>
+</div>
+<!-- Mechanical Transport Control Deck -->
+<div class="flex items-center gap-2">
+<button aria-label="Rewind" class="btn-mechanical hidden sm:flex items-center justify-center w-8 h-8 bg-surface border border-outline text-on-surface hover:bg-surface-container">
+<span class="material-symbols-outlined text-[16px]" data-icon="fast_rewind">fast_rewind</span>
+</button>
+<!-- Mechanical Play / Latch State -->
+<button aria-label="Pause Deck" class="btn-mechanical flex items-center justify-center w-9 h-9 bg-primary text-on-primary border border-on-surface hover:bg-primary-container">
+<span class="material-symbols-outlined text-[20px]" data-icon="pause" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<button aria-label="Fast Forward" class="btn-mechanical hidden sm:flex items-center justify-center w-8 h-8 bg-surface border border-outline text-on-surface hover:bg-surface-container">
+<span class="material-symbols-outlined text-[16px]" data-icon="fast_forward">fast_forward</span>
+</button>
+<button aria-label="Queue Deck" class="btn-mechanical flex items-center justify-center w-8 h-8 text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="queue_music">queue_music</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- BottomNavBar Component (from Shared Components JSON) -->
+<!-- Contextual Active Lock: Page is 'My Collection' (Library), so Library destination is actively highlighted -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-space-sm py-space-xs bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/30 dark:border-outline/30 shadow-none">
+<!-- Item 1: Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="album">album</span>
+<span>Home</span>
+</a>
+<!-- Item 2: Search (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="search">search</span>
+<span>Search</span>
+</a>
+<!-- Item 3: Library (ACTIVE - Exact semantic intent for 'My Collection') -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed font-tech-data-sm text-tech-data-sm py-1 border-t-2 border-primary dark:border-primary-fixed hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="library_music" style="font-variation-settings: 'FILL' 1;">library_music</span>
+<span>Library</span>
+</a>
+<!-- Item 4: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="account_circle">account_circle</span>
+<span>Profile</span>
+</a>
+</nav>
+<!-- Interactive script for audio deck micro-interactions -->
+<script>
+    // Lightweight tactile feedback simulation for latch buttons
+    document.querySelectorAll('.btn-mechanical').forEach(button => {
+      button.addEventListener('click', () => {
+        // Simple subtle console log mirroring mechanical transport response
+        console.log('Audio transport latch state toggled');
+      });
+    });
+  </script>
+</body></html>

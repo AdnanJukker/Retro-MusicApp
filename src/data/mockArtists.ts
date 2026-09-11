@@ -1,0 +1,88 @@
+import type { Artist } from '@/types/music';
+
+export const mockArtists: Artist[] = [
+  {
+    id: 'ar-velvet',
+    name: 'The Velvet Soundscape',
+    genre: 'Rock',
+    art: { palette: 'accent', motif: 'sun' },
+    bio: 'A desert-rock four-piece recording direct to 15 IPS master tape since 1971, known for wide stereo panning and sun-bleached fuzz guitar tone.',
+  },
+  {
+    id: 'ar-mobley',
+    name: 'Hank Mobley Quintet',
+    genre: 'Jazz',
+    art: { palette: 'ink', motif: 'ring' },
+    bio: 'Hard-bop tenor sessions cut live to two-track in a single afternoon, prized for their warm horn tone and unhurried swing.',
+  },
+  {
+    id: 'ar-shimizu',
+    name: 'Yasuaki Shimizu',
+    genre: 'Electronic',
+    art: { palette: 'gold', motif: 'grid' },
+    bio: 'Tokyo-based composer blending saxophone, early digital synthesis, and dub production into a singular city-pop hybrid.',
+  },
+  {
+    id: 'ar-hosono',
+    name: 'Haruomi Hosono',
+    genre: 'Lo-Fi',
+    art: { palette: 'olive', motif: 'stripe' },
+    bio: 'Pioneer of Japanese ambient and technopop, recorded largely on consumer four-track decks for an intentionally worn, tape-saturated sound.',
+  },
+  {
+    id: 'ar-fuzztones',
+    name: 'The Fuzztones',
+    genre: 'Rock',
+    art: { palette: 'ink', motif: 'peak' },
+    bio: 'Valve-amp garage revivalists chasing the overdriven glow of vacuum tube compression and hand-wound pickups.',
+  },
+  {
+    id: 'ar-pacific',
+    name: 'Pacific Drift Ensemble',
+    genre: 'Indie',
+    art: { palette: 'accent', motif: 'stripe' },
+    bio: 'Coastal jangle-pop collective built around low-output pickups, brushed drums, and unpolished bedroom harmonies.',
+  },
+  {
+    id: 'ar-analog',
+    name: 'The Analog Collective',
+    genre: 'Soul',
+    art: { palette: 'gold', motif: 'ring' },
+    bio: 'A rotating cast of session players chasing the warmth of Ampex eight-track soul recordings from the early seventies.',
+  },
+  {
+    id: 'ar-ciani',
+    name: 'Suzanne Ciani',
+    genre: 'Classical',
+    art: { palette: 'olive', motif: 'grid' },
+    bio: 'Buchla modular composer working at the intersection of orchestral scoring and early electronic sound sculpture.',
+  },
+  {
+    id: 'ar-ghostcity',
+    name: 'Ghost City Rebels',
+    genre: 'Hip-Hop',
+    art: { palette: 'ink', motif: 'sun' },
+    bio: 'Sample-heavy production crew looping dusty breakbeats straight off vinyl for an unmistakably crackled low end.',
+  },
+  {
+    id: 'ar-elysian',
+    name: 'Elysian Tape Loop Trio',
+    genre: 'Lo-Fi',
+    art: { palette: 'accent', motif: 'grid' },
+    bio: 'Experimental trio building entire compositions from manipulated cassette loops and hand-spliced reel-to-reel tape.',
+  },
+  {
+    id: 'ar-motorik',
+    name: 'Motorik Ensemble',
+    genre: 'Electronic',
+    art: { palette: 'gold', motif: 'peak' },
+    bio: 'West German-inspired outfit locked into hypnotic four-on-the-floor rhythms and analog modular sequencing.',
+  },
+  {
+    id: 'ar-stan',
+    name: 'Stan & The Analog Trio',
+    genre: 'Jazz',
+    art: { palette: 'olive', motif: 'sun' },
+    bio: 'A piano-led trio recorded direct-to-disc for an intimate, room-mic warmth rarely captured in modern studios.',
+  },
+];

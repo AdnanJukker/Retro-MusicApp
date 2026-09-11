@@ -6,6 +6,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-review/
 web-build/
 expo-env.d.ts
 
@@ -41,3 +42,8 @@ example
 # generated native folders
 /ios
 /android
+
+# server/ (optional self-hosted resolver) — Python
+server/.venv/
+server/__pycache__/
+server/*.pyc

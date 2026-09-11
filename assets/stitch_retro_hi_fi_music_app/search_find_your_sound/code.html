@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HI-FI AUDIO ARCHIVE - Search &amp; Sound Discovery</title>
+<!-- Fonts: Space Mono, Barlow Condensed, Manrope -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#775600",
+            "background": "#fff8f4",
+            "secondary-container": "#ffcd6c",
+            "primary-fixed": "#ffdbce",
+            "tertiary-fixed": "#e3e5c4",
+            "on-primary-fixed-variant": "#802a00",
+            "on-primary": "#ffffff",
+            "inverse-surface": "#34302b",
+            "on-tertiary": "#ffffff",
+            "surface": "#fff8f4",
+            "primary-fixed-dim": "#ffb59a",
+            "secondary-fixed": "#ffdea5",
+            "on-primary-fixed": "#380d00",
+            "surface-container-low": "#fbf2eb",
+            "surface-container-highest": "#eae1da",
+            "outline-variant": "#ddc0b7",
+            "inverse-primary": "#ffb59a",
+            "on-tertiary-fixed-variant": "#464930",
+            "tertiary-fixed-dim": "#c6c9a9",
+            "on-secondary-fixed-variant": "#5d4200",
+            "surface-container": "#f5ece5",
+            "primary": "#9c3e15",
+            "surface-tint": "#a04118",
+            "inverse-on-surface": "#f8efe8",
+            "surface-bright": "#fff8f4",
+            "tertiary-container": "#74775b",
+            "on-secondary": "#ffffff",
+            "error": "#ba1a1a",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-dim": "#e1d8d2",
+            "secondary-fixed-dim": "#f0bf60",
+            "surface-container-lowest": "#ffffff",
+            "primary-container": "#bd562c",
+            "on-primary-container": "#fffbff",
+            "on-tertiary-fixed": "#1a1d09",
+            "surface-container-high": "#f0e7e0",
+            "on-secondary-fixed": "#261900",
+            "outline": "#8a726a",
+            "on-background": "#1f1b17",
+            "secondary": "#7b5800",
+            "on-surface": "#1f1b17",
+            "tertiary": "#5b5e44",
+            "error-container": "#ffdad6",
+            "surface-variant": "#eae1da",
+            "on-tertiary-container": "#fdffde",
+            "on-surface-variant": "#56423b"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin": "1rem",
+            "space-lg": "1.5rem",
+            "margin-tablet": "2rem",
+            "space-xl": "2.5rem",
+            "margin-desktop": "3rem",
+            "space-md": "1rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "tech-data-md": ["Space Mono"],
+            "display-hero": ["Barlow Condensed"],
+            "tech-data-lg": ["Space Mono"],
+            "tech-data-sm": ["Space Mono"],
+            "label-caps": ["Barlow Condensed"],
+            "headline-md": ["Barlow Condensed"],
+            "headline-lg": ["Barlow Condensed"],
+            "headline-sm": ["Barlow Condensed"],
+            "display-hero-mobile": ["Barlow Condensed"],
+            "headline-lg-mobile": ["Barlow Condensed"],
+            "body-sm": ["Manrope"],
+            "body-md": ["Manrope"],
+            "body-lg": ["Manrope"]
+          },
+          "fontSize": {
+            "tech-data-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "400" }],
+            "display-hero": ["56px", { "lineHeight": "56px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "tech-data-lg": ["15px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "tech-data-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.12em", "fontWeight": "700" }],
+            "label-caps": ["13px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "28px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "headline-lg": ["36px", { "lineHeight": "40px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "22px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "display-hero-mobile": ["38px", { "lineHeight": "40px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["28px", { "lineHeight": "32px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Subdued chassis tactile noise simulation */
+    .tactile-noise {
+      background-image: radial-gradient(rgba(36, 32, 28, 0.05) 1px, transparent 0);
+      background-size: 8px 8px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col font-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- ================= RETRO STATUS BAR (MOBILE SIMULATION) ================= -->
+<header class="w-full bg-surface-container-high border-b border-outline-variant/30 px-space-md py-1 flex items-center justify-between font-tech-data-sm text-tech-data-sm text-on-surface-variant select-none">
+<div class="flex items-center gap-space-sm">
+<span class="font-bold text-primary tracking-widest">[ TUNER // FM 94.7 MHz ]</span>
+<span class="hidden sm:inline-block text-tertiary">• STEREO BEACON ON</span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">graphic_eq</span>
+<span>REC LEVEL: -3dB</span>
+</span>
+<span>16:42:09</span>
+<span class="material-symbols-outlined text-[14px]">battery_charging_full</span>
+</div>
+</header>
+<!-- ================= TOP APP BAR (From Shared Components JSON) ================= -->
+<nav class="flex justify-between items-center w-full px-space-md py-space-sm h-14 border-b border-outline-variant/30 bg-surface">
+<!-- Leading element -->
+<div class="flex items-center gap-space-sm">
+<button class="w-9 h-9 flex items-center justify-center border border-outline-variant/50 bg-surface-container-low hover:bg-surface-container-high active:translate-y-px duration-75 text-primary">
+<span class="material-symbols-outlined" data-icon="graphic_eq">graphic_eq</span>
+</button>
+<span class="text-headline-sm font-headline-sm tracking-widest text-primary uppercase pl-space-xs font-bold">
+        HI-FI AUDIO ARCHIVE
+      </span>
+</div>
+<!-- Web Navigation cluster (Desktop only) -->
+<div class="hidden md:flex items-center gap-space-lg">
+<span class="text-on-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150">Home</span>
+<span class="text-primary font-tech-data-sm text-tech-data-sm uppercase tracking-wider font-bold cursor-pointer border-b-2 border-primary pb-0.5">Search</span>
+<span class="text-on-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150">Library</span>
+<span class="text-on-surface-variant font-tech-data-sm text-tech-data-sm uppercase tracking-wider cursor-pointer hover:text-primary transition-colors duration-150">Profile</span>
+</div>
+<!-- Trailing icon -->
+<div class="flex items-center gap-space-sm">
+<div class="hidden sm:flex items-center border border-outline-variant/40 px-2 py-1 bg-surface-container-lowest font-tech-data-sm text-tech-data-sm text-tertiary">
+        BAND: <span class="text-primary ml-1 font-bold">STUDIO ARCHIVES</span>
+</div>
+<button class="w-9 h-9 flex items-center justify-center border border-outline-variant/50 bg-surface-container-low hover:bg-surface-container-high active:translate-y-px duration-75 text-on-surface">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</button>
+</div>
+</nav>
+<!-- ================= MAIN CONTENT CANVAS ================= -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-space-md sm:px-space-lg pb-32 pt-space-md tactile-noise">
+<!-- Top Section: Header & Deck Indicator -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-space-md border-b border-outline-variant/40 pb-space-sm gap-2">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="inline-block w-2.5 h-2.5 bg-primary animate-pulse"></span>
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant tracking-widest uppercase">SECTION 02 // FREQUENCY DISCOVERY</span>
+</div>
+<h1 class="text-display-hero-mobile md:text-display-hero font-display-hero uppercase tracking-tight text-on-surface leading-none">
+          FIND YOUR SOUND
+        </h1>
+</div>
+<!-- Studio Metric Gauges / Analog readout status -->
+<div class="flex items-center gap-space-sm self-start md:self-end">
+<div class="border border-outline-variant/40 px-3 py-1.5 bg-surface-container-low flex items-center gap-space-sm shadow-inner">
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">DOLBY HX-PRO:</span>
+<span class="font-tech-data-sm text-tech-data-sm font-bold text-primary">ENGAGED</span>
+</div>
+<div class="border border-outline-variant/40 px-3 py-1.5 bg-surface-container-low flex items-center gap-space-sm">
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">FLUTTER:</span>
+<span class="font-tech-data-sm text-tech-data-sm text-secondary font-bold">0.035% WRMS</span>
+</div>
+</div>
+</div>
+<!-- ================= SEARCH INPUT CHASSIS (1980s Tuner Deck Faceplate) ================= -->
+<div class="relative mb-space-lg bg-surface-container-low border-2 border-on-surface p- space-sm shadow-[inset_0_1px_3px_rgba(36,32,28,0.1)]">
+<div class="flex flex-col sm:flex-row items-stretch gap-2">
+<!-- Search Input Unit -->
+<div class="relative flex-1 flex items-center bg-surface-container-lowest border border-outline-variant/60 focus-within:border-primary transition-colors">
+<div class="pl-space-md pr-space-xs text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="search">search</span>
+</div>
+<input class="w-full bg-transparent border-0 py-3 text-on-surface font-tech-data-md text-tech-data-md placeholder:text-on-surface-variant/60 focus:ring-0 focus:outline-none" placeholder="Search tracks, artists, albums, catalog numbers..." type="text" value="Miles Davis 1970 Bitches Brew sessions"/>
+<button class="px-space-md text-on-surface-variant hover:text-primary transition-colors flex items-center" title="Clear Query">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+</button>
+</div>
+<!-- Tactile Deck Audio Filter Button -->
+<button class="flex items-center justify-center gap-space-sm px-space-lg py-3 bg-surface border border-on-surface hover:bg-surface-container-high active:translate-y-px transition duration-75 text-on-surface font-label-caps text-label-caps tracking-widest uppercase">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="tune">tune</span>
+<span>AUDIO FILTER</span>
+<span class="ml-1 px-1.5 py-0.5 bg-primary text-on-primary font-tech-data-sm text-tech-data-sm">03</span>
+</button>
+<!-- Direct Search Action Button -->
+<button class="px-space-xl py-3 bg-primary text-on-primary font-label-caps text-label-caps tracking-widest uppercase hover:bg-primary-container active:translate-y-px transition duration-75 flex items-center justify-center gap-2">
+<span>TUNE INDEX</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<!-- Chassis Sub-Bar: Audio Frequency Calibration Markers -->
+<div class="mt-2 pt-2 border-t border-outline-variant/30 flex flex-wrap items-center justify-between text-on-surface-variant font-tech-data-sm text-tech-data-sm px-1">
+<div class="flex items-center gap-space-md">
+<span>EQ CALIBRATION: <strong class="text-on-surface">FLAT / TYPE-II</strong></span>
+<span class="hidden sm:inline">INDEX CODE: <strong class="text-on-surface">#ARC-74902</strong></span>
+</div>
+<div class="flex items-center gap-3">
+<span class="inline-block w-2 h-2 bg-secondary-container border border-secondary"></span>
+<span>MONITOR SOURCE: [ ANALOG MASTER REEL ]</span>
+</div>
+</div>
+</div>
+<!-- ================= GENRE CATEGORIES (Cassette Labels & Vinyl Spines) ================= -->
+<section class="mb-space-xl">
+<div class="flex items-center justify-between mb-space-sm">
+<h2 class="font-headline-sm text-headline-sm uppercase tracking-wider text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">label</span>
+          INDEX BY SOUND PROFILE &amp; MEDIA ARCHIVE
+        </h2>
+<span class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">[ 9 GENRE WELLS ]</span>
+</div>
+<!-- Spine Sticker Labels Grid / Carousel -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-9 gap-2">
+<!-- Label 1: Active with Burnt Orange Accent -->
+<button class="flex flex-col justify-between p-2.5 bg-primary border-2 border-on-surface text-left shadow-[2px_2px_0px_rgba(36,32,28,0.9)] active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-primary font-tech-data-sm text-[9px] mb-2 tracking-widest opacity-90">
+<span>SPINE 01</span>
+<span class="w-1.5 h-1.5 bg-secondary-fixed"></span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-primary tracking-tight font-bold">
+            Indie Rock
+          </span>
+<span class="font-tech-data-sm text-[9px] text-primary-fixed mt-1">[ 1,240 REELS ]</span>
+</button>
+<!-- Label 2: Active with Mustard Yellow Accent -->
+<button class="flex flex-col justify-between p-2.5 bg-secondary-container border-2 border-on-surface text-left shadow-[2px_2px_0px_rgba(36,32,28,0.9)] active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-secondary-container font-tech-data-sm text-[9px] mb-2 tracking-widest font-bold">
+<span>SPINE 02</span>
+<span class="w-1.5 h-1.5 bg-primary"></span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-secondary-container tracking-tight font-bold">
+            Jazz &amp; Fusion
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-secondary-container mt-1">[ 840 MASTERS ]</span>
+</button>
+<!-- Label 3: Cassette Paper Style -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 03</span>
+<span class="text-tertiary">CrO2</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Electronic / Modular
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 612 TAPES ]</span>
+</button>
+<!-- Label 4 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 04</span>
+<span class="text-tertiary">VINYL</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Hip-Hop 90s
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 530 PRESSINGS ]</span>
+</button>
+<!-- Label 5 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 05</span>
+<span class="text-tertiary">REEL</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Deep Soul
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 740 TRACKS ]</span>
+</button>
+<!-- Label 6 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 06</span>
+<span class="text-tertiary">33 RPM</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Classical &amp; Chamber
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 980 SCORES ]</span>
+</button>
+<!-- Label 7 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 07</span>
+<span class="text-primary font-bold">TYPE I</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Lo-Fi Tape
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 420 CASSETTES ]</span>
+</button>
+<!-- Label 8 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 08</span>
+<span class="text-tertiary">MONO</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Bossa Nova
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 310 SESSIONS ]</span>
+</button>
+<!-- Label 9 -->
+<button class="flex flex-col justify-between p-2.5 bg-surface-container border border-on-surface/40 hover:border-on-surface text-left active:translate-y-px transition">
+<div class="flex justify-between items-center text-on-surface-variant font-tech-data-sm text-[9px] mb-2 tracking-widest">
+<span>SPINE 09</span>
+<span class="text-tertiary">DUB</span>
+</div>
+<span class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">
+            Dub &amp; Reggae
+          </span>
+<span class="font-tech-data-sm text-[9px] text-on-surface-variant mt-1">[ 388 CUTS ]</span>
+</button>
+</div>
+</section>
+<!-- ================= 2-COLUMN MODULAR RACK: POPULAR SEARCHES & ARCHIVE PICKS ================= -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- LEFT BAY: POPULAR SEARCHES (Vintage Tape & Vinyl Trending Queries) -->
+<section class="lg:col-span-6 bg-surface-container-low border border-outline-variant/50 p-space-md flex flex-col justify-between">
+<div>
+<!-- Rack Header -->
+<div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-outline-variant/40">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">whatshot</span>
+<h3 class="font-headline-md text-headline-md uppercase tracking-wide text-on-surface">
+                POPULAR SEARCHES
+              </h3>
+</div>
+<span class="font-tech-data-sm text-tech-data-sm text-primary font-bold tracking-widest bg-surface-container-high px-2 py-0.5 border border-outline-variant/40">
+              REAL-TIME LOG
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Continuously monitored telemetry from turntable cue channels and physical playback requests.
+          </p>
+<!-- List of Popular Searches -->
+<div class="flex flex-col divide-y divide-outline-variant/30 border-t border-outline-variant/30">
+<!-- Item 1 -->
+<div class="py-3 flex items-center justify-between group hover:bg-surface-container-high px-2 transition-colors duration-150">
+<div class="flex items-center gap-space-md">
+<span class="font-tech-data-md text-tech-data-md text-on-surface-variant group-hover:text-primary">01</span>
+<!-- Vinyl Icon indicator -->
+<div class="w-10 h-10 border border-on-surface/30 bg-surface flex items-center justify-center text-on-surface group-hover:border-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="album">album</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">
+                      Pharoah Sanders - Karma
+                    </span>
+<span class="font-tech-data-sm text-tech-data-sm text-tertiary">[ 1969 ]</span>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+                    IMPULSE! RECORDS • SPIRITUAL JAZZ • STEREO MASTER
+                  </div>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block font-tech-data-sm text-tech-data-sm font-bold bg-primary text-on-primary px-2 py-0.5 tracking-wider">
+                  TOP SPUN • 3.8K
+                </span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="py-3 flex items-center justify-between group hover:bg-surface-container-high px-2 transition-colors duration-150">
+<div class="flex items-center gap-space-md">
+<span class="font-tech-data-md text-tech-data-md text-on-surface-variant group-hover:text-primary">02</span>
+<!-- Cassette Icon indicator -->
+<div class="w-10 h-10 border border-on-surface/30 bg-surface flex items-center justify-center text-on-surface group-hover:border-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="library_music">library_music</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">
+                      Boards of Canada - Music Has The Right
+                    </span>
+<span class="font-tech-data-sm text-tech-data-sm text-tertiary">[ 1998 ]</span>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+                    WARP RECORDS • ANALOG SYNTH • TYPE-IV METAL TAPE
+                  </div>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block font-tech-data-sm text-tech-data-sm font-bold bg-secondary-container text-on-secondary-container px-2 py-0.5 tracking-wider border border-secondary/40">
+                  TOP SPUN • 2.4K
+                </span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="py-3 flex items-center justify-between group hover:bg-surface-container-high px-2 transition-colors duration-150">
+<div class="flex items-center gap-space-md">
+<span class="font-tech-data-md text-tech-data-md text-on-surface-variant group-hover:text-primary">03</span>
+<div class="w-10 h-10 border border-on-surface/30 bg-surface flex items-center justify-center text-on-surface group-hover:border-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="album">album</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">
+                      Fela Kuti &amp; Africa 70 - Zombie
+                    </span>
+<span class="font-tech-data-sm text-tech-data-sm text-tertiary">[ 1976 ]</span>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+                    COCONUT RECORDINGS • AFROBEAT • DIRECT DUB 24/96
+                  </div>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block font-tech-data-sm text-tech-data-sm font-bold bg-surface-container-highest text-on-surface-variant px-2 py-0.5 tracking-wider border border-outline-variant/50">
+                  HOT • 1.9K
+                </span>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="py-3 flex items-center justify-between group hover:bg-surface-container-high px-2 transition-colors duration-150">
+<div class="flex items-center gap-space-md">
+<span class="font-tech-data-md text-tech-data-md text-on-surface-variant group-hover:text-primary">04</span>
+<div class="w-10 h-10 border border-on-surface/30 bg-surface flex items-center justify-center text-on-surface group-hover:border-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="library_music">library_music</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">
+                      Suzanne Ciani - Seven Waves
+                    </span>
+<span class="font-tech-data-sm text-tech-data-sm text-tertiary">[ 1982 ]</span>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+                    BUCHLA MODULAR ARCHIVES • AMBIENT • REEL-TO-REEL 15IPS
+                  </div>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-block font-tech-data-sm text-tech-data-sm font-bold bg-surface-container-highest text-on-surface-variant px-2 py-0.5 tracking-wider border border-outline-variant/50">
+                  HOT • 1.6K
+                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Studio Mechanical Footer -->
+<div class="mt-space-md pt-space-sm border-t border-outline-variant/40 flex items-center justify-between font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+<span>TRACK ROTATION: <span class="text-on-surface font-bold">AUTOMATIC</span></span>
+<button class="text-primary hover:underline flex items-center gap-1 font-bold">
+            VIEW FULL LOG BOOK <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- RIGHT BAY: ARCHIVE PICKS (Curated Gatefold Sleeves & Sound Masterworks) -->
+<section class="lg:col-span-6 bg-surface-container-low border border-outline-variant/50 p-space-md flex flex-col justify-between">
+<div>
+<!-- Rack Header -->
+<div class="flex items-center justify-between pb-space-sm mb-space-sm border-b border-outline-variant/40">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px]">verified</span>
+<h3 class="font-headline-md text-headline-md uppercase tracking-wide text-on-surface">
+                ARCHIVE PICKS
+              </h3>
+</div>
+<span class="font-tech-data-sm text-tech-data-sm text-on-secondary-container font-bold tracking-widest bg-secondary-container px-2 py-0.5 border border-secondary/40">
+              CURATOR CUE
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+            Pristine acoustic pressings, uncensored studio master transfers, and gatefold liner notes.
+          </p>
+<!-- Gatefold Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Pick 1 -->
+<div class="border border-on-surface/40 bg-surface-container-lowest p-space-sm group hover:border-primary transition-all">
+<div class="relative aspect-square mb-2 bg-surface-dim overflow-hidden border border-on-surface/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A vintage 1970s analog jazz vinyl album cover aesthetic with warm cream and burnt orange geometric typography, grainy textured unbleached paper sleeve, subtle tactile aging, soft studio lighting, mid-century modernist graphic design discipline." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7CnnD11dBtIHafUuOcQgllMj5xIupTO2F_mIAGyQW-PSR0unhdP5qDZSXvUoCnfSoFIjNhuLj8-kp2ALSiZRs16REhuA-SDels5-J8HL5xGhX6wMz8hHbilqd5aTyH2g2CBEkB-nfT2lM6A5yqjepts9eK2raZovItzfZUMa6cozNZqBOIOiBQ7RSFWhoFSswI9s4jH_2qcYG3EeOAwFJDROeUQErFkU2qeR7mRSnAosFrO8x7c4r"/>
+<div class="absolute top-2 left-2 bg-on-surface text-surface font-tech-data-sm text-[9px] px-1.5 py-0.5 font-bold">
+                  24-BIT / 96KHZ
+                </div>
+<div class="absolute bottom-2 right-2 w-7 h-7 bg-primary text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</div>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-primary font-bold">CAT. #IMP-9022-A</div>
+<h4 class="font-headline-sm text-headline-sm uppercase text-on-surface leading-tight mt-0.5">
+                Black Saint &amp; The Sinner Lady
+              </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Charles Mingus (1963)</p>
+<div class="mt-2 pt-2 border-t border-outline-variant/30 flex justify-between items-center text-tech-data-sm font-tech-data-sm text-tertiary">
+<span>PRESS: MONO ACETATE</span>
+<span class="text-on-surface font-bold">39:12 MIN</span>
+</div>
+</div>
+<!-- Pick 2 -->
+<div class="border border-on-surface/40 bg-surface-container-lowest p-space-sm group hover:border-primary transition-all">
+<div class="relative aspect-square mb-2 bg-surface-dim overflow-hidden border border-on-surface/20">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="A retro 1980s Japanese ambient electronic synthesizer gatefold cassette j-card cover design, featuring subtle mustard yellow and deep espresso brown minimalist architectural photography, warm studio tungsten lighting, vintage clean editorial layout." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeEdGWXB5D6_Zkka5SRZYLGvKMT3Se8tpeYKB48mFl8g7ty1NHgUaChxE7zp6iIgVB5mQXySlUJG1DFSsebq4pSPi0wXZLj8Vn3vg4LTaF-LKAfSMgT5wCrzKJB7P-8PGxbNl-gHSuymKusgQ8xyWZ87QmES2eEmnPc3zFALkflN82sqR7w5GQ1RBRWrsAiBeJCFp7QN0Frw5D-Lq7gye98ZaMa5EB2k1DIulmV3SbNbfukG5lf1qd"/>
+<div class="absolute top-2 left-2 bg-secondary-container text-on-secondary-container font-tech-data-sm text-[9px] px-1.5 py-0.5 font-bold">
+                  TYPE II CrO2
+                </div>
+<div class="absolute bottom-2 right-2 w-7 h-7 bg-primary text-on-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+</div>
+</div>
+<div class="font-tech-data-sm text-tech-data-sm text-primary font-bold">CAT. #WR-8401-J</div>
+<h4 class="font-headline-sm text-headline-sm uppercase text-on-surface leading-tight mt-0.5">
+                Through The Looking Glass
+              </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Midori Takada (1983)</p>
+<div class="mt-2 pt-2 border-t border-outline-variant/30 flex justify-between items-center text-tech-data-sm font-tech-data-sm text-tertiary">
+<span>MASTER: 1/2-INCH REEL</span>
+<span class="text-on-surface font-bold">40:08 MIN</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Archival Verification Deck -->
+<div class="mt-space-md pt-space-sm border-t border-outline-variant/40 flex items-center justify-between font-tech-data-sm text-tech-data-sm text-on-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary inline-block"></span>
+            ACOUSTIC AUTHENTICITY 100% VERIFIED
+          </span>
+<button class="text-primary hover:underline flex items-center gap-1 font-bold">
+            OPEN VAULT VA-04 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+</button>
+</div>
+</section>
+</div>
+<!-- ================= REAL-TIME ANALOG VU TELEMETRY BAY ================= -->
+<section class="mt-space-lg bg-surface-container border border-outline-variant/40 p-space-md">
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-md">
+<!-- Left: VU Meter Description -->
+<div class="w-full md:w-1/3">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-[18px]">graphic_eq</span>
+<span class="font-tech-data-sm text-tech-data-sm font-bold text-on-surface uppercase">LINE LEVEL DISCOVERY MONITOR</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Acoustic waveform response from current tuned frequency. Harmonic resonance calibrated for magnetic tape fidelity.
+          </p>
+<div class="mt-2 flex items-center gap-3 font-tech-data-sm text-tech-data-sm text-tertiary">
+<span>CH-A: -1.2 dB</span>
+<span>CH-B: -0.8 dB</span>
+<span class="text-primary font-bold">PEAK: 0 dB</span>
+</div>
+</div>
+<!-- Center & Right: Dual Analog VU Meters -->
+<div class="w-full md:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<!-- Channel 1 Meter -->
+<div class="bg-surface-container-lowest border border-on-surface/40 p-2 shadow-inner">
+<div class="flex justify-between items-center font-tech-data-sm text-[9px] text-on-surface-variant border-b border-outline-variant/30 pb-1 mb-1">
+<span>LEFT CHANNEL [VU]</span>
+<span class="text-primary font-bold">-20 -10 -7 -5 -3 -1 0 +1 +3</span>
+</div>
+<div class="relative h-10 w-full bg-surface-container-low flex items-center px-2 overflow-hidden">
+<div class="w-full h-1 bg-outline-variant/40 relative">
+<!-- Needle representation -->
+<div class="absolute -top-3 left-[68%] w-0.5 h-7 bg-primary rotate-12 transition-all duration-300"></div>
+<div class="absolute -top-1 left-0 h-3 bg-secondary-container/60 w-[68%]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center font-tech-data-sm text-[8px] text-on-surface-variant pt-1">
+<span>0% MODULATION</span>
+<span class="text-primary">100% OVERLOAD</span>
+</div>
+</div>
+<!-- Channel 2 Meter -->
+<div class="bg-surface-container-lowest border border-on-surface/40 p-2 shadow-inner">
+<div class="flex justify-between items-center font-tech-data-sm text-[9px] text-on-surface-variant border-b border-outline-variant/30 pb-1 mb-1">
+<span>RIGHT CHANNEL [VU]</span>
+<span class="text-primary font-bold">-20 -10 -7 -5 -3 -1 0 +1 +3</span>
+</div>
+<div class="relative h-10 w-full bg-surface-container-low flex items-center px-2 overflow-hidden">
+<div class="w-full h-1 bg-outline-variant/40 relative">
+<!-- Needle representation -->
+<div class="absolute -top-3 left-[72%] w-0.5 h-7 bg-primary rotate-6 transition-all duration-300"></div>
+<div class="absolute -top-1 left-0 h-3 bg-secondary-container/60 w-[72%]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center font-tech-data-sm text-[8px] text-on-surface-variant pt-1">
+<span>0% MODULATION</span>
+<span class="text-primary">100% OVERLOAD</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ================= PERSISTENT MINI PLAYER BAR (Above Bottom Nav) ================= -->
+<aside class="fixed bottom-14 left-0 w-full z-40 bg-surface-container-highest border-t border-outline-variant/40 px-space-md py-2 flex items-center justify-between shadow-md">
+<!-- Left: Track info & Physical Media Badge -->
+<div class="flex items-center gap-space-md max-w-[50%] sm:max-w-md">
+<!-- Miniature Vinyl Spinner -->
+<div class="w-10 h-10 border border-on-surface bg-inverse-surface text-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px] animate-spin text-primary-fixed" style="animation-duration: 4s;">album</span>
+</div>
+<div class="truncate">
+<div class="flex items-center gap-2">
+<span class="font-tech-data-sm text-[9px] bg-primary text-on-primary px-1 font-bold shrink-0">NOW SPUN</span>
+<h4 class="font-body-md text-body-md font-bold text-on-surface truncate">
+            Spanish Key (Studio Outtake #2)
+          </h4>
+</div>
+<p class="font-tech-data-sm text-tech-data-sm text-on-surface-variant truncate">
+          Miles Davis • The Complete Bitches Brew Sessions [TAPE 03]
+        </p>
+</div>
+</div>
+<!-- Center: Mechanical Progress Scrubber (Desktop only) -->
+<div class="hidden md:flex flex-col items-center w-1/3">
+<div class="flex justify-between w-full font-tech-data-sm text-[10px] text-on-surface-variant mb-1">
+<span>04:18</span>
+<span class="text-primary font-bold">REEL COUNTER: 0842</span>
+<span>17:29</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-low border border-outline-variant/60 relative cursor-pointer">
+<div class="absolute left-0 top-0 h-full bg-primary w-[28%]"></div>
+<div class="absolute left-[28%] -top-1 w-2 h-3 bg-on-surface border border-surface"></div>
+</div>
+</div>
+<!-- Right: Tactile Transport Mechanical Controls -->
+<div class="flex items-center gap-1 sm:gap-2">
+<!-- Previous -->
+<button class="w-8 h-8 flex items-center justify-center border border-on-surface/40 bg-surface hover:bg-surface-container active:translate-y-px text-on-surface">
+<span class="material-symbols-outlined text-[18px]">skip_previous</span>
+</button>
+<!-- Play/Pause Latch Button (Engaged/Active State) -->
+<button class="px-3 h-8 flex items-center justify-center gap-1 bg-on-surface text-surface border border-on-surface active:translate-y-px shadow-inner font-tech-data-sm text-tech-data-sm font-bold">
+<span class="material-symbols-outlined text-[18px]">pause</span>
+<span class="hidden sm:inline">PAUSE</span>
+</button>
+<!-- Next -->
+<button class="w-8 h-8 flex items-center justify-center border border-on-surface/40 bg-surface hover:bg-surface-container active:translate-y-px text-on-surface">
+<span class="material-symbols-outlined text-[18px]">skip_next</span>
+</button>
+<!-- Eject/Queue -->
+<button class="w-8 h-8 hidden sm:flex items-center justify-center border border-on-surface/40 bg-surface hover:bg-surface-container active:translate-y-px text-on-surface" title="Eject Cassette">
+<span class="material-symbols-outlined text-[18px]">eject</span>
+</button>
+</div>
+</aside>
+<!-- ================= BOTTOM NAVIGATION BAR (From Shared Components JSON) ================= -->
+<!-- Search Tab is autonomously marked ACTIVE with burnt orange accent logic -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-space-sm py-space-xs border-t border-outline-variant/30 bg-surface-container-low md:hidden">
+<!-- Tab 1: Home (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined" data-icon="album">album</span>
+<span>Home</span>
+</a>
+<!-- Tab 2: Search (ACTIVE - Exact intent match with Search Screen) -->
+<a class="flex flex-col items-center justify-center text-primary font-tech-data-sm text-tech-data-sm py-1 border-t-2 border-primary active:translate-y-px" href="#">
+<span class="material-symbols-outlined font-bold" data-icon="search">search</span>
+<span class="font-bold">Search</span>
+</a>
+<!-- Tab 3: Library (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined" data-icon="library_music">library_music</span>
+<span>Library</span>
+</a>
+<!-- Tab 4: Profile (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant font-tech-data-sm text-tech-data-sm py-1 hover:text-primary transition-colors duration-150 active:translate-y-px" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span>Profile</span>
+</a>
+</footer>
+</body></html>
