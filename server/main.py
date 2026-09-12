@@ -169,36 +169,43 @@ async def resolve(video_id: str):
     }
 
 
-@app.get("/stream/{video_id}")
-async def stream(video_id: str, request: Request):
-    if not video_id or len(video_id) > 32:
-        raise HTTPException(status_code=400, detail="invalid video id")
-
-    best, _, error = await _get_resolved(video_id)
-    if not best:
-        # One retry with a forced re-resolve — the cached URL may have
-        # expired, or the first attempt raced a transient upstream error.
-        best, _, error = await _get_resolved(video_id, force_refresh=True)
+async def _fetch_upstream(video_id: str, range_header: str | None, force_refresh: bool):
+    best, _, error = await _get_resolved(video_id, force_refresh=force_refresh)
     if not best:
         detail = f"unplayable: {error}" if error else "no audio-only format available"
         raise HTTPException(status_code=404, detail=detail)
 
     assert http_client is not None
-    range_header = request.headers.get("range")
     upstream_headers = {"Range": range_header} if range_header else {}
-
     upstream_req = http_client.build_request("GET", best["url"], headers=upstream_headers)
     try:
-        upstream_resp = await http_client.send(upstream_req, stream=True)
+        return await http_client.send(upstream_req, stream=True)
     except httpx.HTTPError as e:
         raise HTTPException(status_code=502, detail=f"upstream fetch failed: {e}") from e
 
+
+@app.get("/stream/{video_id}")
+async def stream(video_id: str, request: Request):
+    if not video_id or len(video_id) > 32:
+        raise HTTPException(status_code=400, detail="invalid video id")
+
+    range_header = request.headers.get("range")
+    upstream_resp = await _fetch_upstream(video_id, range_header, force_refresh=False)
+
     if upstream_resp.status_code == 403:
-        # The cached URL is almost certainly stale/expired — invalidate and
-        # let the *next* request re-resolve, rather than looping here.
+        # On a shared/cloud host, the outbound IP that fetches the bytes can
+        # differ from the one that resolved the URL moments earlier (a
+        # rotating egress pool), which googlevideo.com's IP-locking then
+        # rejects. One retry with a fresh resolve gives it another chance to
+        # land on a matching IP — never looped beyond this single retry.
         _resolved_cache.pop(video_id, None)
         await upstream_resp.aclose()
-        raise HTTPException(status_code=502, detail="upstream rejected the resolved URL (expired?)")
+        upstream_resp = await _fetch_upstream(video_id, range_header, force_refresh=True)
+
+    if upstream_resp.status_code == 403:
+        _resolved_cache.pop(video_id, None)
+        await upstream_resp.aclose()
+        raise HTTPException(status_code=502, detail="upstream rejected the resolved URL (expired or IP mismatch)")
 
     response_headers = {
         k: v
