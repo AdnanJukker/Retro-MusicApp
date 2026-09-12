@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import shutil
 import time
 from contextlib import asynccontextmanager
 from functools import partial
@@ -81,8 +82,16 @@ PLAYER_CLIENTS: list[str | None] = [None, "android", "ios", "web"]
 # docstring — this is a deliberate, explicit choice made by the app's owner,
 # not a default. The file is never read from git; only from wherever the
 # host's secret-file mechanism mounts it at runtime.
-COOKIES_PATH = os.environ.get("YTDLP_COOKIES_PATH", "/etc/secrets/cookies.txt")
-_cookies_available = os.path.isfile(COOKIES_PATH)
+#
+# yt-dlp writes back to the cookiefile it's given (to persist refreshed
+# session cookies) — but secret-file mounts (Render's included) are
+# read-only, which makes that write fail. Copy it to a writable temp path
+# once at startup and point yt-dlp at the copy instead of the mounted file.
+_COOKIES_SOURCE_PATH = os.environ.get("YTDLP_COOKIES_PATH", "/etc/secrets/cookies.txt")
+COOKIES_PATH = "/tmp/musicapp_cookies.txt"
+_cookies_available = os.path.isfile(_COOKIES_SOURCE_PATH)
+if _cookies_available:
+    shutil.copyfile(_COOKIES_SOURCE_PATH, COOKIES_PATH)
 
 BASE_YDL_OPTS = {
     "noplaylist": True,
