@@ -49,26 +49,34 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
 
   const { status, reason, formats } = parsePlayerResponse(response);
   devLog('playability', videoId, status, 'formats:', formats.length);
+
+  if (status === PLAYABLE_STATUS) {
+    const direct = selectBestAudioStream(formats);
+    if (direct) {
+      devLog('stream selected (direct)', videoId, direct.mimeType, direct.bitrate);
+      return direct;
+    }
+  }
+
+  // Either every adaptiveFormat is signatureCipher-only (status OK, no direct
+  // url — this app never deciphers that itself), or the unauthenticated
+  // WEB_REMIX `player` call itself reported non-OK playability. That second
+  // case is not necessarily a real playability problem: verified live that
+  // WEB_REMIX can report a video UNPLAYABLE while the resolver's independent
+  // yt-dlp extraction (its own PO token, different clients) still succeeds.
+  // So always try the resolver before giving up — never take WEB_REMIX's
+  // playability verdict as final.
+  devLog('no direct-url audio-only format available, trying stream proxy fallback', videoId, 'status:', status);
+  const proxied = await resolveViaStreamProxy(videoId, options?.signal);
+  if (proxied) {
+    devLog('stream selected (proxy fallback)', videoId, proxied.mimeType, proxied.bitrate);
+    return proxied;
+  }
+
   if (status !== PLAYABLE_STATUS) {
     throw new YouTubeMusicError(reason || 'This track is not available for playback.', 'NOT_PLAYABLE');
   }
-
-  const direct = selectBestAudioStream(formats);
-  if (direct) {
-    devLog('stream selected (direct)', videoId, direct.mimeType, direct.bitrate);
-    return direct;
-  }
-
-  // Every adaptiveFormat is signatureCipher-only — this app never deciphers
-  // that itself. Fall back to a best-effort public proxy that already
-  // deciphers server-side; if none answer, fail cleanly instead of guessing.
-  devLog('no direct-url audio-only format available, trying stream proxy fallback', videoId);
-  const proxied = await resolveViaStreamProxy(videoId, options?.signal);
-  if (!proxied) {
-    throw new YouTubeMusicError('No playable audio stream is available for this track.', 'NO_AUDIO_STREAM');
-  }
-  devLog('stream selected (proxy fallback)', videoId, proxied.mimeType, proxied.bitrate);
-  return proxied;
+  throw new YouTubeMusicError('No playable audio stream is available for this track.', 'NO_AUDIO_STREAM');
 }
 
 export async function getLyrics(videoId: string, options?: MusicServiceOptions): Promise<string | null> {

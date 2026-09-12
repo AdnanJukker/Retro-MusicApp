@@ -10,9 +10,10 @@ since 2023) as a secondary architecture reference only. The legacy
 — nothing imports it. Do not delete it without checking first; do not wire it
 back in without a reason.
 
-Reference copies live in `assets/api_folder/ytmusicapi` (vendored, current as
-of ~2026-07) and `assets/ViMusic-master`. Prefer live-verifying against real
-YouTube Music responses over trusting either snapshot blindly — both rot.
+No vendored snapshots of either reference are checked into this repo — consult
+the live sources (`sigma67/ytmusicapi` on GitHub / readthedocs, `vfsfitvnm/ViMusic`
+on GitHub) directly. Prefer live-verifying against real YouTube Music responses
+over trusting either reference blindly — both rot.
 
 ## Hard constraints (do not relax without the user explicitly asking)
 
@@ -36,14 +37,24 @@ As of this work (2026-09), YouTube Music's unauthenticated `WEB_REMIX`
 is `signatureCipher`-protected with no direct `url`. This is real, current,
 and verified live — not a bug in the parsing. Confirmed independently via:
 `ytmusicapi`'s own FAQ ("Can I download songs? Use youtube-dl for this") and
-its total absence of any deciphering code even in the current snapshot; and
-ViMusic's real `PlayerService.kt`, which depends on the exact same kind of
+its lack of any deciphering code (it's metadata/browsing-only, no streaming
+resolution — reconfirmed 2026-09); and ViMusic's real `PlayerService.kt`,
+which depends on the exact same kind of
 external proxy fallback and would itself fail today since its hardcoded
 instance is dead.
 
+On top of that, the unauthenticated `player` call itself can also report a
+non-`OK` `playabilityStatus` (e.g. `UNPLAYABLE` / "Video unavailable" / "The
+page needs to be reloaded.") for videos that are genuinely playable — verified
+live (2026-09): the resolver's independent `yt-dlp` extraction (its own PO
+token, different player clients) succeeded for a video id WEB_REMIX had just
+reported `UNPLAYABLE` for. Treat WEB_REMIX's playability verdict as informational,
+never as a reason to skip the fallback chain.
+
 `getAudioStream()` in `YouTubeMusicProvider.ts` therefore resolves in order,
-via `streamResolver.ts`:
-1. Direct `url` from InnerTube's own response, if ever present (rare today).
+via `streamResolver.ts`, regardless of what `playabilityStatus` said:
+1. Direct `url` from InnerTube's own response, if ever present (rare today,
+   and only used when `playabilityStatus.status === 'OK'`).
 2. The resolver (`server/`, a `yt-dlp`-backed FastAPI service — see
    `server/README.md`), defaulting to the production Render URL. The
    app calls `{baseUrl}/stream/{videoId}` directly as the playable URL —
@@ -51,8 +62,9 @@ via `streamResolver.ts`:
 3. Public Piped API instances (`EXPO_PUBLIC_PIPED_INSTANCES`, comma-separated
    base URLs) — best-effort, and as of this work every publicly-listed
    instance was down. Kept in case the public network recovers.
-4. Otherwise throws a typed `NO_AUDIO_STREAM` `YouTubeMusicError` — never a
-   silent failure or a guessed/broken URL.
+4. Otherwise throws a typed `YouTubeMusicError` — `NOT_PLAYABLE` with
+   WEB_REMIX's own reason if it reported non-`OK`, else `NO_AUDIO_STREAM` —
+   never a silent failure or a guessed/broken URL.
 
 Do not attempt to add cipher-deciphering logic directly into the app to "fix"
 step 1 — extend step 2/3 (more resolver instances, a better self-hosted
