@@ -30,9 +30,10 @@ The image pins compatible versions of:
 
 The provider listens only on `127.0.0.1:4416` inside the container. `mweb` is
 the primary yt-dlp client because it can receive a generated GVS PO token and
-return direct HTTPS audio formats. `web_embedded` is the single controlled
-fallback; it can expose a muxed MP4 with playable AAC audio when adaptive web
-formats are SABR-only.
+return direct HTTPS audio formats. `visionos`, yt-dlp's default anonymous
+client, is the single general fallback and can return direct HTTPS audio when
+the anonymous web session is rejected for a particular video. `web_embedded`
+is kept last for videos that explicitly permit embedded playback.
 
 yt-dlp's exact-format selection is disabled with `format: all`. The service
 then selects from `info["formats"]`, requiring a direct HTTP(S) URL and a real

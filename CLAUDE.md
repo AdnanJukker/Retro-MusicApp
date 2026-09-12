@@ -72,8 +72,9 @@ raw upstream URL. `/resolve/{video_id}` is metadata/playability-check only.
 Render's shared outbound IP can trigger YouTube bot checks. The Docker image
 therefore bundles matching 2.0.0 releases of the bgutil Python plugin and its
 loopback-only Node provider. yt-dlp uses `mweb` with a generated GVS PO token,
-then `web_embedded` as one controlled muxed-format fallback. Node also runs the
-yt-dlp-ejs challenge solver. No cookies or account credentials are read.
+then the default anonymous `visionos` client for direct HTTPS audio, and keeps
+`web_embedded` last for videos that allow embedded playback. Node also runs
+the yt-dlp-ejs challenge solver. No cookies or account credentials are read.
 
 ## Env vars (see `.env.example` for the full annotated list)
 

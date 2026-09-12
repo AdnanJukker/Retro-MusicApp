@@ -34,7 +34,7 @@ service_logger = logging.getLogger("uvicorn.error")
 service_logger.setLevel(logging.INFO)
 
 BGUTIL_PROVIDER_URL = os.environ.get("BGUTIL_PROVIDER_URL", "http://127.0.0.1:4416").rstrip("/")
-PLAYER_CLIENTS = ["mweb", "web_embedded"]
+PLAYER_CLIENTS = ["mweb", "visionos", "web_embedded"]
 _VIDEO_ID_RE = re.compile(r"^[0-9A-Za-z_-]{11}$")
 _SIGNED_URL_RE = re.compile(r"https?://[^\s\"']*googlevideo\.com[^\s\"']*", re.IGNORECASE)
 _provider_available = False
