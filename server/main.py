@@ -30,11 +30,20 @@ Endpoints:
     GET /stream/{video_id}  -> 200/206, proxies the actual audio bytes,
                                forwarding a client Range header if present
                              -> 404 if unplayable/not found
+
+Optional cookies (YTDLP_COOKIES_PATH, default /etc/secrets/cookies.txt —
+Render's Secret Files mount point): if present, passed to yt-dlp so requests
+carry a real YouTube session, which YouTube generally trusts regardless of
+IP reputation. This is an explicit, deliberate choice — it means this
+service authenticates as whatever account the cookies belong to. Never
+commit a cookies file to git; upload it directly via your host's secret-file
+mechanism, never through code or chat.
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from contextlib import asynccontextmanager
 from functools import partial
@@ -68,6 +77,13 @@ app = FastAPI(title="musicapp-stream-resolver", lifespan=lifespan)
 # scored more suspiciously than residential ones) gets blocked on default.
 PLAYER_CLIENTS: list[str | None] = [None, "android", "ios", "web"]
 
+# Optional: a real YouTube session's cookies, if present. See the module
+# docstring — this is a deliberate, explicit choice made by the app's owner,
+# not a default. The file is never read from git; only from wherever the
+# host's secret-file mechanism mounts it at runtime.
+COOKIES_PATH = os.environ.get("YTDLP_COOKIES_PATH", "/etc/secrets/cookies.txt")
+_cookies_available = os.path.isfile(COOKIES_PATH)
+
 BASE_YDL_OPTS = {
     "noplaylist": True,
     "quiet": True,
@@ -75,6 +91,7 @@ BASE_YDL_OPTS = {
     "skip_download": True,
     "extract_flat": False,
     "socket_timeout": 15,
+    **({"cookiefile": COOKIES_PATH} if _cookies_available else {}),
 }
 
 # video_id -> (resolved format dict, duration seconds, resolved_at). Short
@@ -225,4 +242,6 @@ async def stream(video_id: str, request: Request):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    # cookiesConfigured never reveals the cookie contents — just whether the
+    # secret file was found, useful to confirm your host mounted it correctly.
+    return {"status": "ok", "cookiesConfigured": _cookies_available}

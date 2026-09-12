@@ -47,3 +47,8 @@ example
 server/.venv/
 server/__pycache__/
 server/*.pyc
+
+# Never commit real YouTube session cookies — upload directly via the host's
+# secret-file mechanism (see server/README.md), never through git.
+cookies.txt
+server/cookies.txt
