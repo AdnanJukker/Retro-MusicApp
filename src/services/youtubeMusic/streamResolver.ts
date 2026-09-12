@@ -70,12 +70,17 @@ async function fetchFromSelfHostedResolver(baseUrl: string, videoId: string, sig
   signal?.addEventListener('abort', onExternalAbort);
 
   try {
+    // /resolve only confirms playability and returns metadata — the raw
+    // googlevideo URL it finds is IP-locked to the resolver server itself
+    // (verified: fetching it from a different IP gets a plain 403), so it's
+    // never usable by the phone directly. The phone instead always plays
+    // from /stream on our own resolver domain, which proxies the audio
+    // bytes through using the resolver's own (matching) IP.
     const response = await fetch(`${baseUrl}/resolve/${encodeURIComponent(videoId)}`, { signal: controller.signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const json = (await response.json()) as SelfHostedResolverResponse;
-    if (!json.url) throw new Error('resolver returned no url');
     devLog('self-hosted resolver', 'resolved', json.mimeType, json.bitrate);
-    return { url: json.url, mimeType: json.mimeType, bitrate: json.bitrate };
+    return { url: `${baseUrl}/stream/${encodeURIComponent(videoId)}`, mimeType: json.mimeType, bitrate: json.bitrate };
   } finally {
     clearTimeout(timeoutId);
     signal?.removeEventListener('abort', onExternalAbort);

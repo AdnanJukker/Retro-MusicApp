@@ -156,7 +156,6 @@ export interface PipedAudioStream {
 
 /** Response shape of the optional self-hosted `server/` resolver (`GET /resolve/{videoId}`). */
 export interface SelfHostedResolverResponse {
-  url?: string;
   mimeType?: string;
   bitrate?: number;
   durationSeconds?: number;
