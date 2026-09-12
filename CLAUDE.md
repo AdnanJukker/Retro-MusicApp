@@ -77,12 +77,18 @@ by the direct muxed MP4/AAC fallback from `tv_simply`. `web_embedded` remains
 last for videos that allow embedded playback. Each selected URL must pass a
 one-byte probe from the backend egress before it is accepted. Node also runs
 the yt-dlp-ejs challenge solver. No cookies or account credentials are read.
+Deployments whose datacenter egress is rejected by YouTube can set the secret
+`YOUTUBE_PROXY_URL`; extraction, token generation, probing, and streaming must
+all use that same sticky HTTP(S) proxy session.
 
 ## Env vars (see `.env.example` for the full annotated list)
 
 - `EXPO_PUBLIC_STREAM_RESOLVER_URL` — your self-hosted `server/` deployment.
 - `EXPO_PUBLIC_PIPED_INSTANCES` — override the public Piped fallback list.
 - `EXPO_PUBLIC_MUSIC_API_BASE_URL` — legacy provider only, currently unused.
+
+- `YOUTUBE_PROXY_URL`: backend-only sticky HTTP(S) proxy secret for hosts with
+  YouTube-blocked datacenter egress.
 
 ## Current status
 

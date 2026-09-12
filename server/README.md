@@ -91,9 +91,14 @@ Full signed playback URLs are also redacted.
   8000 in the Docker image).
 - `BGUTIL_PROVIDER_URL`: optional provider override; defaults to the bundled
   loopback server at `http://127.0.0.1:4416`.
+- `YOUTUBE_PROXY_URL`: optional HTTP(S) proxy used for yt-dlp extraction,
+  PO-token generation, stream validation, and media transfer. On hosts whose
+  datacenter IP is blocked by YouTube, configure a reputable residential/ISP
+  proxy with a sticky session so every request for a signed URL uses the same
+  exit IP. Store it as a Render secret; its value is never logged or returned.
 
-No cookies, account credentials, proxy, or secret environment variables are
-required.
+No cookies or account credentials are read. `YOUTUBE_PROXY_URL` is unnecessary
+when the deployment's normal outbound IP is accepted by YouTube.
 
 ## Render deployment
 
@@ -101,6 +106,11 @@ Create a Docker web service with the repository root directory set to
 `server`. The image binds FastAPI to `0.0.0.0:$PORT`; only FastAPI is exposed.
 Remove any old `cookies.txt` secret file because this implementation does not
 read browser cookies.
+
+If Render logs show `LOGIN_REQUIRED` for every configured player client while
+the provider is healthy, Render's shared outbound IP has been rejected before
+format selection. Set `YOUTUBE_PROXY_URL` to a sticky HTTP(S) proxy endpoint;
+changing formats or adding more clients cannot repair that upstream response.
 
 The app uses `https://retro-musicapp.onrender.com` by default. Set
 `EXPO_PUBLIC_STREAM_RESOLVER_URL` only to override that URL for local or staging

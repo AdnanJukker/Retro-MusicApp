@@ -24,6 +24,7 @@ import subprocess
 import time
 from contextlib import asynccontextmanager
 from functools import partial
+from urllib.parse import urlsplit
 
 import httpx
 import yt_dlp
@@ -34,12 +35,18 @@ service_logger = logging.getLogger("uvicorn.error")
 service_logger.setLevel(logging.INFO)
 
 BGUTIL_PROVIDER_URL = os.environ.get("BGUTIL_PROVIDER_URL", "http://127.0.0.1:4416").rstrip("/")
+YOUTUBE_PROXY_URL = os.environ.get("YOUTUBE_PROXY_URL", "").strip() or None
+if YOUTUBE_PROXY_URL:
+    proxy_parts = urlsplit(YOUTUBE_PROXY_URL)
+    if proxy_parts.scheme not in ("http", "https") or not proxy_parts.hostname:
+        raise RuntimeError("YOUTUBE_PROXY_URL must be a valid HTTP(S) proxy URL")
 PLAYER_CLIENTS = ["mweb", "visionos", "tv_simply", "web_embedded"]
 _VIDEO_ID_RE = re.compile(r"^[0-9A-Za-z_-]{11}$")
 _SIGNED_URL_RE = re.compile(r"https?://[^\s\"']*googlevideo\.com[^\s\"']*", re.IGNORECASE)
 _provider_available = False
 _provider_version: str | None = None
 http_client: httpx.AsyncClient | None = None
+media_http_client: httpx.AsyncClient | None = None
 
 
 def _package_version(name: str) -> str:
@@ -65,7 +72,14 @@ def _node_version() -> str:
 
 def _safe_log_message(message: object) -> str:
     """Prevent expiring signed playback URLs from ever entering server logs."""
-    return _SIGNED_URL_RE.sub("<signed media URL redacted>", str(message))
+    safe = _SIGNED_URL_RE.sub("<signed media URL redacted>", str(message))
+    if YOUTUBE_PROXY_URL:
+        safe = safe.replace(YOUTUBE_PROXY_URL, "<youtube proxy redacted>")
+        proxy_parts = urlsplit(YOUTUBE_PROXY_URL)
+        if proxy_parts.username or proxy_parts.password:
+            credentials = f"{proxy_parts.username or ''}:{proxy_parts.password or ''}"
+            safe = safe.replace(credentials, "<youtube proxy credentials redacted>")
+    return safe
 
 
 async def _check_provider(retries: int = 1) -> bool:
@@ -90,8 +104,16 @@ async def _check_provider(retries: int = 1) -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global http_client
-    http_client = httpx.AsyncClient(follow_redirects=True, timeout=30.0)
+    global http_client, media_http_client
+    # Provider health is always loopback-only. YouTube extraction and media
+    # requests use the optional sticky proxy so signed URLs stay on one egress.
+    http_client = httpx.AsyncClient(follow_redirects=True, timeout=30.0, trust_env=False)
+    media_http_client = httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=30.0,
+        proxy=YOUTUBE_PROXY_URL,
+        trust_env=False,
+    )
     try:
         provider_ready = await _check_provider(retries=12)
         service_logger.info(
@@ -106,11 +128,13 @@ async def lifespan(app: FastAPI):
             _provider_version,
             PLAYER_CLIENTS,
         )
+        service_logger.info("youtube proxy configured=%s", bool(YOUTUBE_PROXY_URL))
         if not provider_ready:
             service_logger.error("bgutil PO-token provider is not reachable")
         yield
     finally:
         await http_client.aclose()
+        await media_http_client.aclose()
 
 
 app = FastAPI(title="musicapp-stream-resolver", lifespan=lifespan)
@@ -173,6 +197,8 @@ BASE_YDL_OPTS = {
     # service applies its own audio-aware selection below.
     "format": "all",
 }
+if YOUTUBE_PROXY_URL:
+    BASE_YDL_OPTS["proxy"] = YOUTUBE_PROXY_URL
 
 # video_id -> (resolved format dict, duration seconds, resolved_at)
 _CACHE_TTL_SECONDS = 600
@@ -223,7 +249,12 @@ def _format_request_headers(format_info: dict, range_header: str | None = None) 
 def _probe_format(video_id: str, client: str, format_info: dict) -> bool:
     """Verify a signed URL on this server's egress before returning it."""
     try:
-        with httpx.Client(follow_redirects=True, timeout=10.0) as probe_client:
+        with httpx.Client(
+            follow_redirects=True,
+            timeout=10.0,
+            proxy=YOUTUBE_PROXY_URL,
+            trust_env=False,
+        ) as probe_client:
             with probe_client.stream(
                 "GET",
                 format_info["url"],
@@ -429,12 +460,12 @@ async def _fetch_upstream(video_id: str, range_header: str | None, force_refresh
         status_code, public_error = _failure_status(error, diagnostics)
         raise HTTPException(status_code=status_code, detail=public_error)
 
-    assert http_client is not None
+    assert media_http_client is not None
     upstream_headers = _format_request_headers(best, range_header)
 
-    upstream_request = http_client.build_request("GET", best["url"], headers=upstream_headers)
+    upstream_request = media_http_client.build_request("GET", best["url"], headers=upstream_headers)
     try:
-        return await http_client.send(upstream_request, stream=True)
+        return await media_http_client.send(upstream_request, stream=True)
     except httpx.HTTPError as error:
         service_logger.error("upstream fetch failed video_id=%s error=%s", video_id, _safe_log_message(error))
         raise HTTPException(status_code=502, detail="upstream media fetch failed") from error
@@ -482,6 +513,7 @@ async def health():
         "poTokenProvider": "bgutil",
         "providerAvailable": _provider_available,
         "providerVersion": _provider_version,
+        "youtubeProxyConfigured": bool(YOUTUBE_PROXY_URL),
     }
     if not provider_ready:
         return JSONResponse(status_code=503, content=payload)
