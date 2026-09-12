@@ -93,6 +93,26 @@ _cookies_available = os.path.isfile(_COOKIES_SOURCE_PATH)
 if _cookies_available:
     shutil.copyfile(_COOKIES_SOURCE_PATH, COOKIES_PATH)
 
+class _CapturingLogger:
+    """Captures yt-dlp's warning/error messages so failures are diagnosable
+    from the API response itself, instead of only in host dashboard logs."""
+
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    def debug(self, msg: str) -> None:
+        pass
+
+    def info(self, msg: str) -> None:
+        pass
+
+    def warning(self, msg: str) -> None:
+        self.messages.append(msg)
+
+    def error(self, msg: str) -> None:
+        self.messages.append(msg)
+
+
 BASE_YDL_OPTS = {
     "noplaylist": True,
     "quiet": True,
@@ -100,6 +120,13 @@ BASE_YDL_OPTS = {
     "skip_download": True,
     "extract_flat": False,
     "socket_timeout": 15,
+    # "all" (rather than the implicit "best") avoids yt-dlp's own format
+    # selector raising "Requested format is not available" when nothing
+    # satisfies a default video+audio pairing — we do our own audio-only
+    # selection afterwards over whatever formats *did* come back, even if
+    # that's none, so we can report *why* clearly instead of yt-dlp's
+    # internal selector failing before we ever see the format list.
+    "format": "all",
     **({"cookiefile": COOKIES_PATH} if _cookies_available else {}),
 }
 
@@ -139,43 +166,49 @@ def _pick_best_audio(info: dict) -> dict | None:
     return min(candidates, key=score)
 
 
-def _extract(video_id: str, player_client: str | None) -> dict:
+def _extract(video_id: str, player_client: str | None, logger: _CapturingLogger) -> dict:
     url = f"https://music.youtube.com/watch?v={video_id}"
-    opts = dict(BASE_YDL_OPTS)
+    opts = dict(BASE_YDL_OPTS, logger=logger)
     if player_client:
         opts["extractor_args"] = {"youtube": {"player_client": [player_client]}}
     with yt_dlp.YoutubeDL(opts) as ydl:
         return ydl.extract_info(url, download=False)
 
 
-def _resolve_sync(video_id: str) -> tuple[dict | None, float | None, Exception | None]:
+def _resolve_sync(video_id: str) -> tuple[dict | None, float | None, Exception | None, list[str]]:
     last_error: Exception | None = None
     duration: float | None = None
+    diagnostics: list[str] = []
     for client in PLAYER_CLIENTS:
+        logger = _CapturingLogger()
         try:
-            info = _extract(video_id, client)
+            info = _extract(video_id, client, logger)
         except Exception as e:  # noqa: BLE001 - keep trying the next client
             last_error = e
+            diagnostics.extend(f"[{client or 'default'}] {m}" for m in logger.messages)
             continue
 
+        diagnostics.extend(f"[{client or 'default'}] {m}" for m in logger.messages)
         duration = info.get("duration")
         best = _pick_best_audio(info)
         if best:
-            return best, duration, None
+            return best, duration, None, diagnostics
 
-    return None, duration, last_error
+    return None, duration, last_error, diagnostics
 
 
-async def _get_resolved(video_id: str, force_refresh: bool = False) -> tuple[dict | None, float | None, Exception | None]:
+async def _get_resolved(
+    video_id: str, force_refresh: bool = False
+) -> tuple[dict | None, float | None, Exception | None, list[str]]:
     cached = _resolved_cache.get(video_id)
     if cached and not force_refresh and (time.time() - cached[2]) < _CACHE_TTL_SECONDS:
-        return cached[0], cached[1], None
+        return cached[0], cached[1], None, []
 
     loop = asyncio.get_event_loop()
-    best, duration, error = await loop.run_in_executor(None, partial(_resolve_sync, video_id))
+    best, duration, error, diagnostics = await loop.run_in_executor(None, partial(_resolve_sync, video_id))
     if best:
         _resolved_cache[video_id] = (best, duration, time.time())
-    return best, duration, error
+    return best, duration, error, diagnostics
 
 
 @app.get("/resolve/{video_id}")
@@ -183,10 +216,13 @@ async def resolve(video_id: str):
     if not video_id or len(video_id) > 32:
         raise HTTPException(status_code=400, detail="invalid video id")
 
-    best, duration, error = await _get_resolved(video_id)
+    best, duration, error, diagnostics = await _get_resolved(video_id)
     if not best:
         detail = f"unplayable: {error}" if error else "no audio-only format available"
-        return JSONResponse(status_code=404, content={"error": detail})
+        # Diagnostics are yt-dlp's own warning/error text about *this video's
+        # extraction* — never cookie contents or any secret — kept in the
+        # response temporarily while pinning down the cookie-auth rollout.
+        return JSONResponse(status_code=404, content={"error": detail, "diagnostics": diagnostics})
 
     return {
         "mimeType": f"audio/{best.get('ext', 'mp4')}",
@@ -196,7 +232,7 @@ async def resolve(video_id: str):
 
 
 async def _fetch_upstream(video_id: str, range_header: str | None, force_refresh: bool):
-    best, _, error = await _get_resolved(video_id, force_refresh=force_refresh)
+    best, _, error, _diagnostics = await _get_resolved(video_id, force_refresh=force_refresh)
     if not best:
         detail = f"unplayable: {error}" if error else "no audio-only format available"
         raise HTTPException(status_code=404, detail=detail)
