@@ -31,15 +31,19 @@ The image pins compatible versions of:
 The provider listens only on `127.0.0.1:4416` inside the container. `mweb` is
 the primary yt-dlp client because it can receive a generated GVS PO token and
 return direct HTTPS audio formats. `visionos`, yt-dlp's default anonymous
-client, is the single general fallback and can return direct HTTPS audio when
-the anonymous web session is rejected for a particular video. `web_embedded`
-is kept last for videos that explicitly permit embedded playback.
+client, is the preferred general fallback and can return direct HTTPS audio
+when the anonymous web session is rejected for a particular video.
+`tv_simply` supplies a direct muxed MP4/AAC stream when the audio-only clients
+are rejected. `web_embedded` remains last for videos that explicitly permit
+embedded playback.
 
 yt-dlp's exact-format selection is disabled with `format: all`. The service
 then selects from `info["formats"]`, requiring a direct HTTP(S) URL and a real
 audio codec. It prefers audio-only M4A/MP4 near 160 kbps, then WebM, and uses a
 muxed format only when no audio-only format is available. No exact itag such
-as 140 is assumed.
+as 140 is assumed. Before accepting a candidate, the backend requests one byte
+from the signed URL on its own egress. A 403 candidate is skipped so the next
+client can be tried during `/resolve`, rather than failing later in `/stream`.
 
 Node is also enabled for yt-dlp-ejs signature/n challenge solving. The server
 passes yt-dlp's per-format request headers when fetching the selected URL, but

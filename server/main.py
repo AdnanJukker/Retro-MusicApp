@@ -34,7 +34,7 @@ service_logger = logging.getLogger("uvicorn.error")
 service_logger.setLevel(logging.INFO)
 
 BGUTIL_PROVIDER_URL = os.environ.get("BGUTIL_PROVIDER_URL", "http://127.0.0.1:4416").rstrip("/")
-PLAYER_CLIENTS = ["mweb", "visionos", "web_embedded"]
+PLAYER_CLIENTS = ["mweb", "visionos", "tv_simply", "web_embedded"]
 _VIDEO_ID_RE = re.compile(r"^[0-9A-Za-z_-]{11}$")
 _SIGNED_URL_RE = re.compile(r"https?://[^\s\"']*googlevideo\.com[^\s\"']*", re.IGNORECASE)
 _provider_available = False
@@ -209,6 +209,57 @@ def _pick_best_audio(info: dict) -> dict | None:
     return min(candidates, key=score)
 
 
+def _format_request_headers(format_info: dict, range_header: str | None = None) -> dict[str, str]:
+    headers = {
+        str(key): str(value)
+        for key, value in (format_info.get("http_headers") or {}).items()
+        if key.lower() not in ("cookie", "host", "content-length")
+    }
+    if range_header:
+        headers["Range"] = range_header
+    return headers
+
+
+def _probe_format(video_id: str, client: str, format_info: dict) -> bool:
+    """Verify a signed URL on this server's egress before returning it."""
+    try:
+        with httpx.Client(follow_redirects=True, timeout=10.0) as probe_client:
+            with probe_client.stream(
+                "GET",
+                format_info["url"],
+                headers=_format_request_headers(format_info, "bytes=0-0"),
+            ) as response:
+                status_code = response.status_code
+    except httpx.HTTPError as error:
+        service_logger.warning(
+            "stream probe failed video_id=%s client=%s format_id=%s error=%s",
+            video_id,
+            client,
+            format_info.get("format_id"),
+            _safe_log_message(error),
+        )
+        return False
+
+    if status_code not in (200, 206):
+        service_logger.warning(
+            "stream probe rejected video_id=%s client=%s format_id=%s status=%s",
+            video_id,
+            client,
+            format_info.get("format_id"),
+            status_code,
+        )
+        return False
+
+    service_logger.info(
+        "stream probe succeeded video_id=%s client=%s format_id=%s status=%s",
+        video_id,
+        client,
+        format_info.get("format_id"),
+        status_code,
+    )
+    return True
+
+
 def _log_formats(client: str, info: dict) -> None:
     formats = info.get("formats") or []
     format_ids = [str(format_info.get("format_id") or "?") for format_info in formats]
@@ -279,6 +330,8 @@ def _resolve_sync(video_id: str) -> tuple[dict | None, float | None, Exception |
         _log_formats(client, info)
         best = _pick_best_audio(info)
         if best:
+            if not _probe_format(video_id, client, best):
+                continue
             if best.get("vcodec") in (None, "none"):
                 _log_selected(video_id, client, best)
                 return best, duration, None, diagnostics
@@ -377,13 +430,7 @@ async def _fetch_upstream(video_id: str, range_header: str | None, force_refresh
         raise HTTPException(status_code=status_code, detail=public_error)
 
     assert http_client is not None
-    upstream_headers = {
-        str(key): str(value)
-        for key, value in (best.get("http_headers") or {}).items()
-        if key.lower() not in ("cookie", "host", "content-length")
-    }
-    if range_header:
-        upstream_headers["Range"] = range_header
+    upstream_headers = _format_request_headers(best, range_header)
 
     upstream_request = http_client.build_request("GET", best["url"], headers=upstream_headers)
     try:
