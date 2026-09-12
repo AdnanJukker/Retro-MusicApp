@@ -89,7 +89,7 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
     }
     loadTimeout = setTimeout(() => {
       if (!controller.signal.aborted) fail(new Error('This track took too long to load. Please retry.'));
-    }, 25000);
+    }, 65000);
     try {
       const url = await getStreamUrlCached(track.id, { forceRefresh, signal: controller.signal });
       if (controller.signal.aborted) return;

@@ -25,8 +25,8 @@ function loader(mocks = {}, timers = { setTimeout, clearTimeout }) {
 }
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
-const a = { id: 'a', title: 'First track', source: 'music-api' };
-const b = { id: 'b', title: 'Second track', source: 'music-api' };
+const a = { id: 'a', title: 'First track', source: 'youtube-music' };
+const b = { id: 'b', title: 'Second track', source: 'youtube-music' };
 const status = { currentTime: 0, duration: 180, playing: true, isLoaded: true, isBuffering: false, error: null, didJustFinish: false };
 
 function fixture({ deferSeek = false } = {}) {
@@ -55,7 +55,7 @@ function fixture({ deferSeek = false } = {}) {
   };
   const load = loader({
     '@/services/audioEngine': audio,
-    '@/services/musicApi': {
+    '@/services/youtubeMusic': {
       getStreamUrlCached: (id, options) => new Promise((resolve, reject) => pending.push({ id, options, resolve, reject })),
       invalidateStreamUrl: () => {},
     },

@@ -1,16 +1,51 @@
-# Stream resolver (optional, self-hosted)
+# Stream resolver
 
-A tiny FastAPI service that wraps [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
-to resolve a playable audio URL for a YouTube video id. The app only calls
-this when YouTube Music's own unauthenticated response has no direct URL
-(every `adaptiveFormats` entry is `signatureCipher`-only) — see
-`src/services/youtubeMusic/YouTubeMusicProvider.ts`.
+A small FastAPI service that keeps YouTube extraction details out of the
+mobile app. The app sends a YouTube video id to `/resolve`, then plays from
+`/stream`; the server uses yt-dlp to resolve and proxy the expiring media URL.
+No audio is stored or transcoded.
 
-This is entirely optional. Without it, the app still works for search,
-browsing, artwork, and lyrics — playback just fails with a clean
-`NO_AUDIO_STREAM` error until this is deployed.
+## Endpoints
+
+- `GET /health` returns service and PO-token-provider readiness.
+- `GET /resolve/{video_id}` checks playability and returns `mimeType`,
+  `bitrate`, and `durationSeconds`. It never exposes the signed upstream URL.
+- `GET /stream/{video_id}` proxies the selected media bytes and forwards Range
+  requests so mobile seeking works.
+
+Malformed ids return 400. A genuinely unavailable/removed/private video
+returns 404. yt-dlp, YouTube, PO-token, or network failures return 502 with a
+short public message; detailed diagnostics stay in server logs.
+
+## YouTube extraction strategy
+
+The image pins compatible versions of:
+
+- yt-dlp 2026.08.19
+- yt-dlp-ejs 0.8.0
+- bgutil-ytdlp-pot-provider 2.0.0
+- the bgutil 2.0.0 Node provider server (Node 26)
+
+The provider listens only on `127.0.0.1:4416` inside the container. `mweb` is
+the primary yt-dlp client because it can receive a generated GVS PO token and
+return direct HTTPS audio formats. `web_embedded` is the single controlled
+fallback; it can expose a muxed MP4 with playable AAC audio when adaptive web
+formats are SABR-only.
+
+yt-dlp's exact-format selection is disabled with `format: all`. The service
+then selects from `info["formats"]`, requiring a direct HTTP(S) URL and a real
+audio codec. It prefers audio-only M4A/MP4 near 160 kbps, then WebM, and uses a
+muxed format only when no audio-only format is available. No exact itag such
+as 140 is assumed.
+
+Node is also enabled for yt-dlp-ejs signature/n challenge solving. The server
+passes yt-dlp's per-format request headers when fetching the selected URL, but
+never forwards cookies.
 
 ## Run locally
+
+The FastAPI process can be run directly when a compatible bgutil provider is
+already listening on `http://127.0.0.1:4416`:
 
 ```sh
 cd server
@@ -18,75 +53,45 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-Test it:
+The production-equivalent path is Docker, which starts both the loopback
+provider and FastAPI:
 
 ```sh
-curl http://localhost:8000/resolve/dQw4w9WgXcQ
+docker build -t retro-musicapp-resolver ./server
+docker run --rm -p 8000:8000 retro-musicapp-resolver
 ```
 
-## Deploy for free (Render)
+Verify it without printing a signed upstream URL:
 
-1. Push this repo to GitHub (or just the `server/` folder as its own repo).
-2. On [render.com](https://render.com), **New > Web Service**, connect the repo, set
-   **Root Directory** to `server`. Render auto-detects the `Dockerfile`.
-3. Free plan is fine — it sleeps after ~15 min of inactivity and wakes on
-   the next request (adds a few seconds of latency on the first play after
-   a while, harmless afterwards).
-4. Once deployed, copy the service URL (e.g. `https://your-service.onrender.com`).
-
-Fly.io and Railway both also have free/low-cost tiers and support the same
-`Dockerfile` as-is if you'd rather use one of those.
-
-## Point the app at it
-
-In the MusicApp project root, set in `.env.local`:
-
-```
-EXPO_PUBLIC_STREAM_RESOLVER_URL=https://your-service.onrender.com
+```sh
+curl http://localhost:8000/health
+curl http://localhost:8000/resolve/Uo_OSlQZlgY
+curl -H "Range: bytes=0-65535" -o sample.bin -D - \
+  http://localhost:8000/stream/Uo_OSlQZlgY
 ```
 
-Restart Expo. Playback will now try your resolver whenever YouTube's direct
-response has no URL, before falling back to public Piped instances (which
-are frequently down) and finally to `NO_AUDIO_STREAM`.
+At startup and extraction time, FastAPI logs report yt-dlp, EJS, bgutil, Node,
+provider readiness, player client, returned format ids/codecs/protocols, token
+success, and the selected format. The provider's own stdout is suppressed
+because it prints token values; full signed playback URLs are also redacted.
 
-## If your host's IP gets bot-blocked ("Sign in to confirm you're not a bot")
+## Configuration
 
-Some hosts (Render's free tier in particular) share outbound IPs across many
-customers, and YouTube has blocklisted that range fairly comprehensively. If
-`/resolve` or `/stream` consistently return that error regardless of which
-player client is tried, the fix is to authenticate the resolver's requests
-with a real YouTube session's cookies — YouTube generally trusts a valid
-session regardless of IP reputation.
+- `PORT`: public FastAPI port, supplied automatically by Render (defaults to
+  8000 in the Docker image).
+- `BGUTIL_PROVIDER_URL`: optional provider override; defaults to the bundled
+  loopback server at `http://127.0.0.1:4416`.
 
-**This is a deliberate trade-off, not a default**: it means this service
-authenticates as whatever Google account the cookies belong to. Use an
-account you're comfortable with this service acting as, understand it
-reverses any "no personal account" rule you may have set for the app
-itself, and that unattended automated use of a personal account's session
-isn't something Google's ToS loves — cookies can also expire/rotate and
-need periodic re-export if it stops working.
+No cookies, account credentials, proxy, or secret environment variables are
+required.
 
-1. **Export cookies.txt** from a browser where you're logged into YouTube,
-   using a well-known extension for exactly this ([Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-   for Chrome, or the Firefox equivalent). Export for `youtube.com` in
-   Netscape format.
-2. **Never commit this file to git or paste its contents anywhere** — it's
-   equivalent to a password for that account.
-3. **Upload it as a secret file** on your host, not through code:
-   - Render: Dashboard → your service → **Environment** → **Secret Files** →
-     add one with filename `cookies.txt` and paste the file's contents.
-     Render mounts it at `/etc/secrets/cookies.txt` automatically, which is
-     exactly where `main.py` looks for it by default.
-   - Other hosts: check their docs for "secret files" / "mounted secrets";
-     override the path with the `YTDLP_COOKIES_PATH` env var if it differs.
-4. Redeploy. Check `GET /health` — it returns `cookiesConfigured: true` once
-   the file is detected (this never reveals the file's contents, just
-   whether it was found).
+## Render deployment
 
-## Why yt-dlp and not something built from scratch
+Create a Docker web service with the repository root directory set to
+`server`. The image binds FastAPI to `0.0.0.0:$PORT`; only FastAPI is exposed.
+Remove any old `cookies.txt` secret file because this implementation does not
+read browser cookies.
 
-`ytmusicapi` (the app's primary metadata reference) explicitly does not
-implement stream deciphering — its own FAQ recommends `youtube-dl`/`yt-dlp`
-for that. `yt-dlp` is the actively-maintained tool that tracks YouTube's
-signature/cipher changes; this service is a thin HTTP adapter around it, not
-a reimplementation of any cipher-breaking logic.
+The app uses `https://retro-musicapp.onrender.com` by default. Set
+`EXPO_PUBLIC_STREAM_RESOLVER_URL` only to override that URL for local or staging
+builds.

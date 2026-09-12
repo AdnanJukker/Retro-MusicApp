@@ -16,16 +16,11 @@ YouTube Music responses over trusting either snapshot blindly — both rot.
 
 ## Hard constraints (do not relax without the user explicitly asking)
 
-- No login, signup, OAuth, Google auth, subscriptions, or ads, anywhere in the
-  **app itself** (`src/**`). **Exception, explicitly approved 2026-09**: the
-  optional `server/` resolver may use real YouTube session cookies (see
-  "Cookie auth" below) — this is a deliberate, narrowly-scoped reversal for
-  that one component only, not a general green light to add auth elsewhere.
+- No login, signup, OAuth, Google auth, subscriptions, ads, browser cookies, or
+  account credentials in either the app or resolver.
 - No authenticated InnerTube mode inside the app's own InnerTube client
   (`src/services/youtubeMusic/**`): no cookies/SAPISID/browser.json/oauth.json,
-  no private library/subscriptions/account history. (This is separate from
-  `server/`'s cookies, which authenticate yt-dlp's YouTube *website* requests,
-  not this app's InnerTube API calls.)
+  no private library/subscriptions/account history.
 - No YouTube signature-cipher deciphering implemented in this app's own code
   (`src/services/youtubeMusic/**`) — this was an explicit platform-level
   restriction during development, not just a style preference. If a format
@@ -49,8 +44,8 @@ instance is dead.
 `getAudioStream()` in `YouTubeMusicProvider.ts` therefore resolves in order,
 via `streamResolver.ts`:
 1. Direct `url` from InnerTube's own response, if ever present (rare today).
-2. Your self-hosted resolver (`server/`, a `yt-dlp`-backed FastAPI service —
-   see `server/README.md`) if `EXPO_PUBLIC_STREAM_RESOLVER_URL` is set. The
+2. The resolver (`server/`, a `yt-dlp`-backed FastAPI service — see
+   `server/README.md`), defaulting to the production Render URL. The
    app calls `{baseUrl}/stream/{videoId}` directly as the playable URL —
    **not** a raw googlevideo URL returned by `/resolve` (see IP-locking below).
 3. Public Piped API instances (`EXPO_PUBLIC_PIPED_INSTANCES`, comma-separated
@@ -72,31 +67,13 @@ googlevideo.com using the resolver's own IP and relays the response through
 (with Range-header forwarding, so seeking works) — the app never touches the
 raw upstream URL. `/resolve/{video_id}` is metadata/playability-check only.
 
-### Cloud hosts get bot-blocked; cookie auth is the sanctioned way around it
+### Cloud hosts get bot-blocked; use the bundled PO-token provider
 
-Render's free tier (and likely other shared-IP free hosts) is comprehensively
-blocked by YouTube's bot detection — confirmed via ~10 consecutive failed
-attempts across every yt-dlp player-client fallback over several minutes, not
-an intermittent fluke. Trying more clients in code does not fix this; it's an
-IP-reputation block, not a request-shape problem.
-
-**Approved fix (explicit user decision, 2026-09, using their main Google
-account, accepting the account-risk trade-off — see `server/README.md`)**:
-`server/main.py` optionally loads a real YouTube session's cookies from
-`YTDLP_COOKIES_PATH` (default `/etc/secrets/cookies.txt`, matching Render's
-Secret Files mount point) and passes them to yt-dlp via `cookiefile`. A valid
-session is generally trusted by YouTube regardless of IP reputation. This
-file must never be committed to git or pasted into chat/code — upload it
-directly through the host's secret-file UI. `GET /health` reports
-`cookiesConfigured: true/false` (presence only, never contents) so you can
-confirm it mounted correctly without exposing anything.
-
-If cookie auth isn't set up yet or you'd rather not use it: the other
-mitigation being tried is moving off Render's blocked IP pool entirely —
-Google Cloud Run was chosen as the next host (genuinely-free usage-based
-tier, different IP pool, unverified against YouTube's block). Self-hosting
-on a residential connection is the most reliable non-cookie option, since
-residential IPs essentially never hit this block.
+Render's shared outbound IP can trigger YouTube bot checks. The Docker image
+therefore bundles matching 2.0.0 releases of the bgutil Python plugin and its
+loopback-only Node provider. yt-dlp uses `mweb` with a generated GVS PO token,
+then `web_embedded` as one controlled muxed-format fallback. Node also runs the
+yt-dlp-ejs challenge solver. No cookies or account credentials are read.
 
 ## Env vars (see `.env.example` for the full annotated list)
 
@@ -106,34 +83,13 @@ residential IPs essentially never hit this block.
 
 ## Current status
 
-Search, artwork, lyrics, and the local library all work against real
-unauthenticated YouTube Music data (parsers verified against live responses,
-not just fixtures). Audio playback works end-to-end **only when a working
-resolver is configured** per the fallback chain above — with nothing
-configured, the app is honestly search/browse-only and surfaces
-`NO_AUDIO_STREAM` rather than pretending to play.
+Search, artwork, lyrics, and the local library use unauthenticated YouTube
+Music. The app defaults to `https://retro-musicapp.onrender.com` for stream
+resolution and can override it with `EXPO_PUBLIC_STREAM_RESOLVER_URL`.
 
-`server/` is built, proxies bytes correctly (verified locally end-to-end —
-real `206 Partial Content` / `audio/mp4` audio through `/stream`), pushed to
-`github.com/AdnanJukker/Retro-MusicApp`, and deployed to Render at
-`https://retro-musicapp.onrender.com`. There is still **no `.env.local`** in
-the project, so the app isn't actually pointed at it yet.
-
-**Blocker**: Render's IP is bot-blocked by YouTube (see above) — `/resolve`
-and `/stream` both fail there consistently. Cookie-auth support was just
-added to `server/main.py` to work around this (pending the user uploading
-their exported `cookies.txt` as a Render Secret File — not yet confirmed
-done). In parallel, Google Cloud Run was chosen as an alternative host to
-try, not yet deployed.
-
-**Remaining steps, whichever path lands first:**
-1. Either: user uploads `cookies.txt` to Render's Secret Files (see
-   `server/README.md`) and redeploys, then confirm `GET /health` shows
-   `cookiesConfigured: true` and `/resolve`/`/stream` succeed — OR: deploy
-   `server/` to Cloud Run (build context `/server`, unauthenticated
-   invocations) and test the same way.
-2. Once *any* deployment reliably resolves+streams, create `.env.local` in
-   the project root with `EXPO_PUBLIC_STREAM_RESOLVER_URL=<that-url>`, then
-   fully restart Expo (env vars only load at startup, not on hot reload).
-3. Verify the real acceptance test: search a track in the app, tap it,
-   confirm audible playback on device — not just a successful curl.
+The bgutil-backed server change is verified locally with three public videos:
+`/resolve` returns 200 metadata and `/stream` returns real 206 `audio/mp4`
+bytes. Malformed ids return 400, unavailable videos return 404, and upstream
+extractor failures return 502. Push and redeploy `server/`, remove the obsolete
+Render cookies secret, then repeat the endpoint and device-audio checks against
+the production URL.

@@ -85,17 +85,19 @@ export function getStreamResolverInstances(): string[] {
 export const STREAM_RESOLVER_TIMEOUT_MS = 6000;
 
 /**
- * Base URL of a self-hosted `server/` resolver (see `server/README.md`) —
+ * Base URL of the `server/` resolver (see `server/README.md`) —
  * a thin wrapper around `yt-dlp`, which stays current with YouTube's
  * cipher/signature changes unlike the public Piped network. Tried first,
- * since it's the one fallback under your own control. Unset by default —
- * nothing is called unless you deploy the resolver and set this.
+ * since it's the one fallback under our control. The production Render URL
+ * is the default; the environment variable overrides it for local/staging.
  */
+const DEFAULT_STREAM_RESOLVER_URL = 'https://retro-musicapp.onrender.com';
+
 export function getSelfHostedResolverUrl(): string | undefined {
-  const url = process.env.EXPO_PUBLIC_STREAM_RESOLVER_URL?.trim().replace(/\/+$/, '');
+  const url = (process.env.EXPO_PUBLIC_STREAM_RESOLVER_URL?.trim() || DEFAULT_STREAM_RESOLVER_URL).replace(/\/+$/, '');
   return url || undefined;
 }
 
 // yt-dlp extraction (fetching + parsing the watch page) genuinely takes a
 // few seconds — longer than a Piped instance just returning a cached result.
-export const SELF_HOSTED_RESOLVER_TIMEOUT_MS = 15000;
+export const SELF_HOSTED_RESOLVER_TIMEOUT_MS = 60000;
