@@ -32,8 +32,17 @@ app = FastAPI(title="musicapp-stream-resolver")
 # Reused across requests — yt-dlp instantiation is cheap but this avoids
 # re-parsing options on every call. extract_flat=False because we need the
 # real format list, not just metadata.
-YDL_OPTS = {
-    "format": "bestaudio/best",
+#
+# yt-dlp's own default client auto-selection (no extractor_args at all) is
+# usually the best choice — its maintainers actively rotate it to whatever
+# currently dodges YouTube's SABR/PO-token restrictions, which changes often
+# (see https://github.com/yt-dlp/yt-dlp/issues/12482). `None` here means "no
+# override, use the default". The explicit clients after it are extra
+# fallback attempts only, for when a specific IP (cloud/datacenter IPs get
+# scored more suspiciously than residential ones) gets blocked on default.
+PLAYER_CLIENTS: list[str | None] = [None, "android", "ios", "web"]
+
+BASE_YDL_OPTS = {
     "noplaylist": True,
     "quiet": True,
     "no_warnings": True,
@@ -43,31 +52,39 @@ YDL_OPTS = {
 }
 
 
+def _has_audio(f: dict) -> bool:
+    return bool(f.get("url")) and f.get("acodec") not in (None, "none")
+
+
 def _pick_best_audio(info: dict) -> dict | None:
-    formats = info.get("formats") or []
-    audio_only = [
-        f
-        for f in formats
-        if f.get("url")
-        and f.get("acodec") not in (None, "none")
-        and f.get("vcodec") in (None, "none")
-    ]
-    if not audio_only:
+    formats = [f for f in (info.get("formats") or []) if _has_audio(f)]
+    if not formats:
         return None
 
+    # Prefer real audio-only formats; only fall back to a muxed (audio+video)
+    # one — still genuinely playable, just wastes some bandwidth on a video
+    # track we don't use — when that's all a given client offers (e.g. the
+    # android client, which currently only exposes itag 18, muxed).
+    audio_only = [f for f in formats if f.get("vcodec") in (None, "none")]
+    candidates = audio_only or formats
+
     target_bitrate = 160
-    def score(f: dict) -> tuple[int, float]:
+    def score(f: dict) -> tuple[int, int, float]:
         ext = f.get("ext") or ""
         container_score = 0 if ext in ("m4a", "mp4") else 1 if ext == "webm" else 2
+        muxed_penalty = 0 if f.get("vcodec") in (None, "none") else 1
         abr = f.get("abr") or 0
-        return (container_score, abs(abr - target_bitrate))
+        return (muxed_penalty, container_score, abs(abr - target_bitrate))
 
-    return min(audio_only, key=score)
+    return min(candidates, key=score)
 
 
-def _extract(video_id: str) -> dict:
+def _extract(video_id: str, player_client: str | None) -> dict:
     url = f"https://music.youtube.com/watch?v={video_id}"
-    with yt_dlp.YoutubeDL(YDL_OPTS) as ydl:
+    opts = dict(BASE_YDL_OPTS)
+    if player_client:
+        opts["extractor_args"] = {"youtube": {"player_client": [player_client]}}
+    with yt_dlp.YoutubeDL(opts) as ydl:
         return ydl.extract_info(url, download=False)
 
 
@@ -77,16 +94,25 @@ async def resolve(video_id: str):
         raise HTTPException(status_code=400, detail="invalid video id")
 
     loop = asyncio.get_event_loop()
-    try:
-        info = await loop.run_in_executor(None, partial(_extract, video_id))
-    except yt_dlp.utils.DownloadError as e:
-        return JSONResponse(status_code=404, content={"error": f"unplayable: {e}"})
-    except Exception as e:  # noqa: BLE001 - surface as a clean 502, never crash the process
-        return JSONResponse(status_code=502, content={"error": f"extraction failed: {e}"})
+    last_error: Exception | None = None
+    info: dict | None = None
+    best: dict | None = None
+    for client in PLAYER_CLIENTS:
+        try:
+            candidate_info = await loop.run_in_executor(None, partial(_extract, video_id, client))
+        except Exception as e:  # noqa: BLE001 - keep trying the next client
+            last_error = e
+            continue
 
-    best = _pick_best_audio(info)
-    if not best:
-        return JSONResponse(status_code=404, content={"error": "no audio-only format available"})
+        candidate_best = _pick_best_audio(candidate_info)
+        if candidate_best:
+            info, best = candidate_info, candidate_best
+            break
+        info = info or candidate_info  # keep something around for duration/etc. even if unusable
+
+    if best is None:
+        detail = f"unplayable: {last_error}" if last_error else "no audio-only format available"
+        return JSONResponse(status_code=404, content={"error": detail})
 
     return {
         "url": best["url"],
