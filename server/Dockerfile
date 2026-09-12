@@ -1,25 +1,31 @@
-# The provider image contains its compiled Node server and a compatible Node 26
-# runtime. Keeping provider and Python plugin on the same 2.0.0 release avoids
-# the version-mismatch rejection built into bgutil.
-FROM brainicism/bgutil-ytdlp-pot-provider:2.0.0 AS bgutil-provider
+# Keep the official provider image as the runtime base so its Node runtime,
+# native modules, and shared libraries remain together. The provider and the
+# Python yt-dlp plugin are pinned to the same release in requirements.txt.
+FROM brainicism/bgutil-ytdlp-pot-provider:2.0.0
 
-FROM python:3.12-slim-bookworm
+USER root
 
-WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/*
 
-# Node runs both the loopback-only bgutil provider and yt-dlp's EJS challenge
-# solver. The provider never listens on Render's public interface.
-COPY --from=bgutil-provider /usr/local/bin/node /usr/local/bin/node
-COPY --from=bgutil-provider /app /opt/bgutil-provider
+WORKDIR /srv/musicapp
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python3 -m venv /opt/musicapp-venv \
+    && /opt/musicapp-venv/bin/pip install --no-cache-dir -r requirements.txt
 
-COPY main.py .
+COPY main.py start.py ./
+RUN chown -R node:node /srv/musicapp
 
-ENV PORT=8000
+USER node
+
+ENV PATH="/opt/musicapp-venv/bin:${PATH}" \
+    PORT=8000
+
 EXPOSE 8000
 
-# The provider currently prints generated token values to stdout. Suppress its
-# own output; FastAPI logs provider readiness and token success without values.
-CMD ["sh", "-c", "node /opt/bgutil-provider/build/main.js >/dev/null 2>&1 & exec uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
+# Clear the provider image's entrypoint. start.py launches that same provider
+# on loopback, verifies /ping, then replaces itself with Uvicorn.
+ENTRYPOINT []
+CMD ["python", "start.py"]

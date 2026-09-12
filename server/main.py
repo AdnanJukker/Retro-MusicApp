@@ -429,10 +429,13 @@ async def stream(video_id: str, request: Request):
 
 @app.get("/health")
 async def health():
-    await _check_provider()
-    return {
-        "status": "ok",
+    provider_ready = await _check_provider()
+    payload = {
+        "status": "ok" if provider_ready else "degraded",
         "poTokenProvider": "bgutil",
         "providerAvailable": _provider_available,
         "providerVersion": _provider_version,
     }
+    if not provider_ready:
+        return JSONResponse(status_code=503, content=payload)
+    return payload

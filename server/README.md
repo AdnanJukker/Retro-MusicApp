@@ -7,7 +7,9 @@ No audio is stored or transcoded.
 
 ## Endpoints
 
-- `GET /health` returns service and PO-token-provider readiness.
+- `GET /health` returns service and PO-token-provider readiness. It returns 503
+  when the provider is unavailable, so a broken deployment cannot pass its
+  health check.
 - `GET /resolve/{video_id}` checks playability and returns `mimeType`,
   `bitrate`, and `durationSeconds`. It never exposes the signed upstream URL.
 - `GET /stream/{video_id}` proxies the selected media bytes and forwards Range
@@ -53,8 +55,10 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-The production-equivalent path is Docker, which starts both the loopback
-provider and FastAPI:
+The production-equivalent path is Docker, which keeps the official provider's
+Node runtime and native dependencies together, then adds Python for FastAPI.
+`start.py` starts the loopback provider, requires its `/ping` check to pass,
+and only then starts FastAPI:
 
 ```sh
 docker build -t retro-musicapp-resolver ./server
@@ -73,7 +77,8 @@ curl -H "Range: bytes=0-65535" -o sample.bin -D - \
 At startup and extraction time, FastAPI logs report yt-dlp, EJS, bgutil, Node,
 provider readiness, player client, returned format ids/codecs/protocols, token
 success, and the selected format. The provider's own stdout is suppressed
-because it prints token values; full signed playback URLs are also redacted.
+because it prints token values, while provider startup errors remain visible.
+Full signed playback URLs are also redacted.
 
 ## Configuration
 
