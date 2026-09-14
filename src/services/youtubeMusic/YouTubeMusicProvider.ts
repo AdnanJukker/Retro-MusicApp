@@ -9,6 +9,7 @@ import {
   selectBestAudioStream,
 } from '@/services/youtubeMusic/innertubeParsers';
 import { resolveViaStreamProxy } from '@/services/youtubeMusic/streamResolver';
+import { createEmbeddedPlaybackUrl } from '@/services/playbackUrl';
 import type { AudioStream, BrowseLyricsResponse, NextResponse, PlayerResponse, SearchResponse } from '@/services/youtubeMusic/innertubeTypes';
 import type { MusicProvider, MusicServiceOptions } from '@/services/MusicProvider';
 import type { Track } from '@/types/music';
@@ -65,7 +66,10 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
   // WEB_REMIX can report a video UNPLAYABLE while the resolver's independent
   // yt-dlp extraction (its own PO token, different clients) still succeeds.
   // So always try the resolver before giving up — never take WEB_REMIX's
-  // playability verdict as final.
+  // playability verdict as final. If server extraction is unavailable, the
+  // final URL is an internal marker consumed by audioEngine; it mounts the
+  // official YouTube IFrame player on the device and never exposes a signed
+  // media URL to this provider or the rest of the UI.
   devLog('no direct-url audio-only format available, trying stream proxy fallback', videoId, 'status:', status);
   const proxied = await resolveViaStreamProxy(videoId, options?.signal);
   if (proxied) {
@@ -73,10 +77,9 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
     return proxied;
   }
 
-  if (status !== PLAYABLE_STATUS) {
-    throw new YouTubeMusicError(reason || 'This track is not available for playback.', 'NOT_PLAYABLE');
-  }
-  throw new YouTubeMusicError('No playable audio stream is available for this track.', 'NO_AUDIO_STREAM');
+  if (status !== PLAYABLE_STATUS) devLog('using device fallback despite WEB_REMIX status', status, reason);
+  devLog('stream selected (YouTube device fallback)', videoId);
+  return { url: createEmbeddedPlaybackUrl(videoId), mimeType: 'video/youtube' };
 }
 
 export async function getLyrics(videoId: string, options?: MusicServiceOptions): Promise<string | null> {

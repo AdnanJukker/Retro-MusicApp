@@ -59,16 +59,22 @@ via `streamResolver.ts`, regardless of what `playabilityStatus` said:
    `server/README.md`), defaulting to the production Render URL. The
    app calls `{baseUrl}/stream/{videoId}` directly as the playable URL —
    **not** a raw googlevideo URL returned by `/resolve` (see IP-locking below).
+   Current resolver deployments report `youtubeProxyConfigured`; the app skips
+   extraction when that value is false because retrying rejected Render egress
+   cannot change YouTube's response.
 3. Public Piped API instances (`EXPO_PUBLIC_PIPED_INSTANCES`, comma-separated
    base URLs) — best-effort, and as of this work every publicly-listed
    instance was down. Kept in case the public network recovers.
-4. Otherwise throws a typed `YouTubeMusicError` — `NOT_PLAYABLE` with
-   WEB_REMIX's own reason if it reported non-`OK`, else `NO_AUDIO_STREAM` —
-   never a silent failure or a guessed/broken URL.
+4. A visible, on-device YouTube IFrame player. This is the playback mechanism
+   used by truckdrivermusic.in: YouTube serves the listener directly, so
+   Render's IP reputation is irrelevant. `audioEngine.ts` consumes an internal
+   `youtube-embed:` marker and keeps that detail out of screens and the player
+   store. The embedded viewport stays at least 200px high and shows YouTube's
+   controls. YouTube may serve ads in embedded players; the app cannot disable
+   them.
 
-Do not attempt to add cipher-deciphering logic directly into the app to "fix"
-step 1 — extend step 2/3 (more resolver instances, a better self-hosted
-resolver) instead.
+Do not add cipher-deciphering logic directly to the app. Improve the controlled
+resolver for background audio, or use the visible device player fallback.
 
 ### googlevideo.com URLs are IP-locked — `server/` must proxy bytes, not URLs
 
@@ -106,7 +112,9 @@ all use that same sticky HTTP(S) proxy session.
 
 Search, artwork, lyrics, and the local library use unauthenticated YouTube
 Music. The app defaults to `https://retro-musicapp.onrender.com` for stream
-resolution and can override it with `EXPO_PUBLIC_STREAM_RESOLVER_URL`.
+resolution and can override it with `EXPO_PUBLIC_STREAM_RESOLVER_URL`. When
+Render reports that no YouTube proxy is configured and public resolvers fail,
+playback continues in the visible device-side YouTube player.
 
 The bgutil-backed server change is verified locally with three public videos:
 `/resolve` returns 200 metadata and `/stream` returns real 206 `audio/mp4`

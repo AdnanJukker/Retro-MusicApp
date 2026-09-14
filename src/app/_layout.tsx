@@ -19,6 +19,7 @@ import {
 import { SpaceMono_400Regular, SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
 
 import { Colors } from '@/constants/theme';
+import { YouTubeFallbackPlayer } from '@/components/YouTubeFallbackPlayer';
 import { usePlayerStore } from '@/store/playerStore';
 
 export { ErrorBoundary } from 'expo-router';
@@ -65,6 +66,7 @@ export default function RootLayout() {
           <Stack.Screen name="playlist/[id]" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="artist/[id]" options={{ animation: 'slide_from_right' }} />
         </Stack>
+        <YouTubeFallbackPlayer />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

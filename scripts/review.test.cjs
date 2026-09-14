@@ -258,3 +258,59 @@ test('audio engine detaches the previous player and rejects its delayed events',
   assert.deepEqual(received, ['new']);
   assert.equal(players[0].removed && players[0].paused && players[0].detached, true);
 });
+
+test('embedded playback uses the device player bridge without creating native audio', async () => {
+  let nativePlayers = 0;
+  const received = [];
+  const load = loader({
+    'expo-audio': {
+      setAudioModeAsync: async () => {},
+      createAudioPlayer: () => { nativePlayers++; },
+    },
+  });
+  const engine = load('@/services/audioEngine');
+  const playbackUrl = load('@/services/playbackUrl');
+  engine.setStatusListener((event) => received.push(event));
+
+  const url = playbackUrl.createEmbeddedPlaybackUrl('Uo_OSlQZlgY');
+  assert.equal(playbackUrl.parseEmbeddedPlaybackUrl(url), 'Uo_OSlQZlgY');
+  assert.equal(playbackUrl.parseEmbeddedPlaybackUrl('youtube-embed:bad'), null);
+  assert.throws(() => playbackUrl.createEmbeddedPlaybackUrl('bad'));
+
+  await engine.loadAndPlay(url, a, new AbortController().signal);
+  assert.equal(nativePlayers, 0);
+  assert.deepEqual(engine.getEmbeddedPlayback(), { videoId: 'Uo_OSlQZlgY', playing: true });
+  assert.equal(received.at(-1).isLoaded, false);
+
+  let seekPosition = null;
+  engine.setEmbeddedPlayerController({ seekTo: (seconds) => { seekPosition = seconds; } });
+  await engine.seekTo(42);
+  assert.equal(seekPosition, 42);
+  engine.reportEmbeddedReady(180);
+  engine.reportEmbeddedState('ended');
+  assert.equal(received.at(-1).didJustFinish, true);
+  engine.reset();
+  assert.equal(engine.getEmbeddedPlayback(), null);
+});
+
+test('YouTube Music provider returns the device player fallback when no stream URL resolves', async () => {
+  const load = loader({
+    '@/services/youtubeMusic/innertubeClient': { postInnertube: async () => ({}) },
+    '@/services/youtubeMusic/innertubeConfig': {
+      getSignatureTimestamp: () => 1,
+      SEARCH_FILTER_SONGS_PARAMS: 'songs',
+    },
+    '@/services/youtubeMusic/innertubeParsers': {
+      parsePlayerResponse: () => ({ status: 'OK', reason: undefined, formats: [] }),
+      selectBestAudioStream: () => null,
+      parseLyricsBrowseId: () => null,
+      parseLyricsText: () => null,
+      parseSearchSongs: () => [],
+    },
+    '@/services/youtubeMusic/streamResolver': { resolveViaStreamProxy: async () => null },
+  });
+  const provider = load('@/services/youtubeMusic/YouTubeMusicProvider');
+  const stream = await provider.getAudioStream('Uo_OSlQZlgY');
+  assert.equal(stream.url, 'youtube-embed:Uo_OSlQZlgY');
+  assert.equal(stream.mimeType, 'video/youtube');
+});
