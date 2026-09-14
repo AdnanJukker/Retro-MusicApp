@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as audioEngine from '@/services/audioEngine';
-import { getStreamUrlCached, invalidateStreamUrl } from '@/services/youtubeMusic';
+import { getStreamUrlCached, invalidateStreamUrl } from '@/services/musicService';
 import type { Track } from '@/types/music';
 import { nextQueueIndex, validQueueIndex } from '@/utils/queue';
 
@@ -83,7 +83,7 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
     const controller = new AbortController();
     request = controller;
     set({ isLoading: true, isPlaying: false, error: null });
-    if (track.source !== 'youtube-music') {
+    if (track.source !== 'youtube-music' && track.source !== 'jiosaavn') {
       fail(new Error('This is a demo archive track. Find playable music in Search.'));
       return;
     }

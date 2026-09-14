@@ -1,11 +1,41 @@
-# Stream resolver
+# Music backend and stream resolver
 
-A small FastAPI service that keeps YouTube extraction details out of the
-mobile app. The app sends a YouTube video id to `/resolve`, then plays from
-`/stream`; the server uses yt-dlp to resolve and proxy the expiring media URL.
-No audio is stored or transcoded.
+A small FastAPI service with a JioSaavn catalog for new searches and the
+existing yt-dlp resolver for saved YouTube tracks. New playback uses
+`/music/search` -> `/music/resolve/{song_id}` -> `/music/stream/{song_id}` ->
+Expo Audio. The server resolves fresh upstream URLs and relays byte ranges;
+no audio is stored or transcoded. No account, cookies, or API key is required.
 
-## Endpoints
+## Current catalog
+
+- `GET /music/search?q=...` returns `{tracks: Track[], provider: "jiosaavn"}`.
+  Track IDs are namespaced, such as `saavn:Yv-9NmYK`; source is `jiosaavn`.
+- `GET /music/resolve/Yv-9NmYK` returns the existing playback metadata shape:
+  `{mimeType, bitrate, durationSeconds}`. Bitrate is null when not measured.
+- `GET /music/stream/Yv-9NmYK` returns actual media, supporting Range and HEAD.
+- `GET /music/lyrics/Yv-9NmYK` returns `{lyrics: string | null}`.
+
+The frontend strips the `saavn:` namespace for these endpoints. Upstream URLs
+never leave the backend or enter persistent storage. Its bounded, two-minute
+cache is refreshed once on a rejected media URL. `/resolve?refresh=true`
+forces renewal after a player error. Malformed IDs return 400; absent songs
+return 404; upstream failures and HTML/error responses return 502.
+
+This is an unofficial adapter to JioSaavn's public web API, not a public proxy
+instance dependency. Search/details operations follow the upstream conventions
+documented in [saavn-labs/sdk](https://github.com/saavn-labs/sdk). The source's
+`song.generateAuthToken` operation resolves media; the adapter does not decode
+DRM or embed cryptographic keys. Only HTTPS `*.saavncdn.com` media URLs and
+redirects are accepted. The source requires its playback Origin/Referer;
+the backend supplies them and exposes CORS for this app's browser player.
+New catalog playback does not use yt-dlp, Node, bgutil, or a YouTube proxy.
+
+The app labels its catalog as JioSaavn. Existing favorites/history retain
+their original YouTube IDs; search a song again to choose its JioSaavn version.
+Failed YouTube extraction no longer starts an unverified iframe as though it
+were resolved audio. Catalog availability can differ from YouTube.
+
+## Existing YouTube endpoints
 
 - `GET /health` returns service and PO-token-provider readiness. It returns 503
   when the provider is unavailable, so a broken deployment cannot pass its
@@ -115,3 +145,42 @@ changing formats or adding more clients cannot repair that upstream response.
 The app uses `https://retro-musicapp.onrender.com` by default. Set
 `EXPO_PUBLIC_STREAM_RESOLVER_URL` only to override that URL for local or staging
 builds.
+
+Deploy this backend **before** distributing the updated app. Docker now copies
+`music.py` alongside `main.py` and `start.py`; no new Python or Node dependency
+is needed. `/health` should include `musicProvider: "jiosaavn"` and
+`musicApiVersion: 1`, along with the unchanged bgutil health fields. Its 503
+status still indicates bgutil is absent; local `/music` endpoints can work
+without that provider when running Uvicorn directly. Docker startup continues
+to require the existing provider.
+
+Run offline tests from the repository root:
+
+```sh
+npm run typecheck
+npm test
+npm run lint
+python -m unittest discover -s server -v
+```
+
+Run a real search-to-audio check after starting the backend (or against Render
+after deploying). This exercises the actual frontend service and fetches only
+128 KiB plus a 4 KiB seek range per song, without saving or logging media URLs:
+
+```sh
+npm run test:playback -- http://127.0.0.1:8000
+npm run test:playback -- https://retro-musicapp.onrender.com
+```
+
+Expected logs for a new catalog selection:
+
+```text
+GET /music/search?q=Besharam%20Rang HTTP/1.1 200 OK
+music resolved provider=jiosaavn song_id=Yv-9NmYK mime=audio/mp4 probe=ok
+GET /music/resolve/Yv-9NmYK HTTP/1.1 200 OK
+GET /music/stream/Yv-9NmYK HTTP/1.1 206 Partial Content
+```
+
+A media request without a Range header can return 200. Provider-ready logs
+alone do not prove YouTube playback works. See [the playback investigation](../PLAYBACK_FIX.md)
+for measured results and remaining verification limits.

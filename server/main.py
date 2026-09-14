@@ -30,6 +30,8 @@ import httpx
 import yt_dlp
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+from music import router as music_router
 
 service_logger = logging.getLogger("uvicorn.error")
 service_logger.setLevel(logging.INFO)
@@ -108,6 +110,7 @@ async def lifespan(app: FastAPI):
     # Provider health is always loopback-only. YouTube extraction and media
     # requests use the optional sticky proxy so signed URLs stay on one egress.
     http_client = httpx.AsyncClient(follow_redirects=True, timeout=30.0, trust_env=False)
+    app.state.music_client = http_client
     media_http_client = httpx.AsyncClient(
         follow_redirects=True,
         timeout=30.0,
@@ -138,6 +141,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="musicapp-stream-resolver", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "HEAD"],
+    allow_headers=["Range"], expose_headers=["Content-Range", "Accept-Ranges", "Content-Length"],
+)
+app.include_router(music_router)
 
 
 class _CapturingLogger:
@@ -514,6 +522,8 @@ async def health():
         "providerAvailable": _provider_available,
         "providerVersion": _provider_version,
         "youtubeProxyConfigured": bool(YOUTUBE_PROXY_URL),
+        "musicProvider": "jiosaavn",
+        "musicApiVersion": 1,
     }
     if not provider_ready:
         return JSONResponse(status_code=503, content=payload)

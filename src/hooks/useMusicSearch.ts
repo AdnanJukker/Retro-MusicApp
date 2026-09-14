@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { SEARCH_DEBOUNCE_MS, SEARCH_MIN_QUERY_LENGTH } from '@/constants/api';
-import { searchTracks } from '@/services/youtubeMusic';
+import { searchTracks } from '@/services/musicService';
 import type { Track } from '@/types/music';
 
 export type SearchState = 'idle' | 'loading' | 'success' | 'empty' | 'error';

@@ -35,7 +35,7 @@ export function TrackRow({
 }: TrackRowProps) {
   const router = useRouter();
   const togglePlayPause = usePlayerStore((state) => state.togglePlayPause);
-  const isDemo = track.source !== 'youtube-music';
+  const isDemo = track.source !== 'youtube-music' && track.source !== 'jiosaavn';
   const activate = isDemo ? () => router.navigate({ pathname: '/search', params: { q: track.artist ?? track.genre ?? track.title } }) : isActive ? togglePlayPause : onPress;
   const favoriteAction = !isDemo && onToggleFavorite;
   // No artist/year on a live search result isn't an error — just don't

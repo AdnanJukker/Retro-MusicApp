@@ -55,7 +55,7 @@ function fixture({ deferSeek = false } = {}) {
   };
   const load = loader({
     '@/services/audioEngine': audio,
-    '@/services/youtubeMusic': {
+    '@/services/musicService': {
       getStreamUrlCached: (id, options) => new Promise((resolve, reject) => pending.push({ id, options, resolve, reject })),
       invalidateStreamUrl: () => {},
     },
@@ -293,7 +293,7 @@ test('embedded playback uses the device player bridge without creating native au
   assert.equal(engine.getEmbeddedPlayback(), null);
 });
 
-test('YouTube Music provider returns the device player fallback when no stream URL resolves', async () => {
+test('YouTube Music provider rejects unavailable audio instead of claiming iframe playback succeeded', async () => {
   const load = loader({
     '@/services/youtubeMusic/innertubeClient': { postInnertube: async () => ({}) },
     '@/services/youtubeMusic/innertubeConfig': {
@@ -310,7 +310,101 @@ test('YouTube Music provider returns the device player fallback when no stream U
     '@/services/youtubeMusic/streamResolver': { resolveViaStreamProxy: async () => null },
   });
   const provider = load('@/services/youtubeMusic/YouTubeMusicProvider');
+  await assert.rejects(provider.getAudioStream('Uo_OSlQZlgY'), /Search this song again/);
+});
+
+test('new catalog tracks use the existing audio engine and wait for real playback before entering history', async () => {
+  const f = fixture();
+  const track = { id: 'saavn:Yv-9NmYK', title: 'Besharam Rang', source: 'jiosaavn' };
+  f.store.getState().playTrack(track);
+  assert.equal(f.pending[0].id, track.id);
+  f.pending[0].resolve('https://example.test/music/stream/Yv-9NmYK');
+  await tick();
+  assert.deepEqual(f.played, [track.id]);
+  assert.equal(f.store.getState().isPlaying, false);
+  assert.equal(f.store.getState().history.length, 0);
+  f.emit();
+  assert.equal(f.store.getState().isPlaying, true);
+  assert.equal(f.store.getState().history[0].id, track.id);
+  f.store.getState().pauseTrack();
+});
+
+test('catalog service preserves track identity, resolves fresh proxy URLs, and retains saved YouTube routing', async (t) => {
+  const requests = [];
+  const ytIds = [];
+  const load = loader({
+    '@/services/youtubeMusic/YouTubeMusicProvider': {
+      getStreamUrlCached: async (id) => { ytIds.push(id); return 'https://example.test/old'; },
+      invalidateStreamUrl: () => {}, getLyrics: async () => 'old lyrics',
+    },
+  });
+  const track = { id: 'saavn:Yv-9NmYK', source: 'jiosaavn', title: 'Besharam Rang' };
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    requests.push(new URL(url));
+    return new Response(JSON.stringify(url.includes('/search?') ? { tracks: [track] } : { mimeType: 'audio/mp4' }));
+  });
+  const service = load('@/services/musicService');
+  assert.deepEqual(await service.searchTracks('A & B'), [track]);
+  assert.equal(requests[0].searchParams.get('q'), 'A & B');
+  const first = await service.getStreamUrlCached(track.id);
+  assert.match(first, /\/music\/stream\/Yv-9NmYK$/);
+  assert.equal(await service.getStreamUrlCached(track.id, { forceRefresh: true }), first);
+  assert.equal(requests.at(-1).searchParams.get('refresh'), 'true');
+  assert.equal(requests.filter((url) => url.pathname.includes('/resolve/')).length, 2);
+  await service.getStreamUrlCached('Uo_OSlQZlgY');
+  assert.deepEqual(ytIds, ['Uo_OSlQZlgY']);
+  await assert.rejects(service.getStreamUrlCached('saavn:invalid'), /Invalid song id/);
+  assert.equal(ytIds.length, 1);
+});
+
+test('catalog cancellation never starts requests or falls back to a different song', async (t) => {
+  const fetchMock = t.mock.method(globalThis, 'fetch', async () => { throw new Error('must not fetch'); });
+  const service = loader({ '@/services/youtubeMusic/YouTubeMusicProvider': {} })('@/services/musicService');
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(service.getStreamUrlCached('saavn:Yv-9NmYK', { signal: controller.signal }), /cancelled/);
+  assert.equal(fetchMock.mock.callCount(), 0);
+});
+
+test('catalog rejects backend errors and unsupported media instead of returning a player URL', async (t) => {
+  const service = loader({ '@/services/youtubeMusic/YouTubeMusicProvider': {} })('@/services/musicService');
+  const mockFetch = t.mock.method(globalThis, 'fetch', async () => new Response('{}', { status: 502 }));
+  await assert.rejects(service.getStreamUrlCached('saavn:Yv-9NmYK'), /service is unavailable/);
+  mockFetch.mock.mockImplementation(async () => new Response(JSON.stringify({ mimeType: 'text/html' })));
+  await assert.rejects(service.getStreamUrlCached('saavn:Yv-9NmYK'), /no supported audio stream/);
+});
+
+test('an InnerTube network failure still attempts the backend for saved YouTube tracks', async () => {
+  const ids = [];
+  const provider = loader({
+    '@/services/youtubeMusic/innertubeClient': { postInnertube: async () => { throw new Error('network failed'); } },
+    '@/services/youtubeMusic/streamResolver': {
+      resolveViaStreamProxy: async (id) => { ids.push(id); return { url: 'https://backend.test/stream/' + id }; },
+    },
+  })('@/services/youtubeMusic/YouTubeMusicProvider');
   const stream = await provider.getAudioStream('Uo_OSlQZlgY');
-  assert.equal(stream.url, 'youtube-embed:Uo_OSlQZlgY');
-  assert.equal(stream.mimeType, 'video/youtube');
+  assert.equal(stream.url, 'https://backend.test/stream/Uo_OSlQZlgY');
+  assert.deepEqual(ids, ['Uo_OSlQZlgY']);
+});
+
+test('YouTube resolver is tried without a proxy health prerequisite and stops on cancellation', async (t) => {
+  const load = loader({
+    '@/services/youtubeMusic/innertubeConfig': {
+      getSelfHostedResolverUrl: () => 'https://backend.test',
+      getStreamResolverInstances: () => [],
+      SELF_HOSTED_RESOLVER_TIMEOUT_MS: 1000,
+    },
+  });
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    calls.push(url);
+    return new Response(JSON.stringify({ mimeType: 'audio/mp4' }));
+  });
+  const resolver = load('@/services/youtubeMusic/streamResolver');
+  assert.equal((await resolver.resolveViaStreamProxy('Uo_OSlQZlgY')).url, 'https://backend.test/stream/Uo_OSlQZlgY');
+  assert.deepEqual(calls, ['https://backend.test/resolve/Uo_OSlQZlgY']);
+  const controller = new AbortController();
+  controller.abort();
+  assert.equal(await resolver.resolveViaStreamProxy('Uo_OSlQZlgY', controller.signal), null);
+  assert.equal(calls.length, 1);
 });

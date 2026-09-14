@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getLyrics } from '@/services/youtubeMusic';
+import { getLyrics } from '@/services/musicService';
 
 export type LyricsState = 'idle' | 'loading' | 'success' | 'unavailable' | 'error';
 

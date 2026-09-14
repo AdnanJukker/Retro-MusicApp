@@ -9,7 +9,6 @@ import {
   selectBestAudioStream,
 } from '@/services/youtubeMusic/innertubeParsers';
 import { resolveViaStreamProxy } from '@/services/youtubeMusic/streamResolver';
-import { createEmbeddedPlaybackUrl } from '@/services/playbackUrl';
 import type { AudioStream, BrowseLyricsResponse, NextResponse, PlayerResponse, SearchResponse } from '@/services/youtubeMusic/innertubeTypes';
 import type { MusicProvider, MusicServiceOptions } from '@/services/MusicProvider';
 import type { Track } from '@/types/music';
@@ -46,9 +45,15 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
       playbackContext: { contentPlaybackContext: { signatureTimestamp: getSignatureTimestamp() } },
     },
     options?.signal
-  );
+  ).catch((error) => {
+    if (options?.signal?.aborted) throw error;
+    devLog('player request failed; trying backend resolver', videoId);
+    return {} as PlayerResponse;
+  });
 
-  const { status, reason, formats } = parsePlayerResponse(response);
+  const { status, reason, formats } = response.playabilityStatus?.status
+    ? parsePlayerResponse(response)
+    : { status: 'UNKNOWN', reason: undefined, formats: [] };
   devLog('playability', videoId, status, 'formats:', formats.length);
 
   if (status === PLAYABLE_STATUS) {
@@ -66,10 +71,7 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
   // WEB_REMIX can report a video UNPLAYABLE while the resolver's independent
   // yt-dlp extraction (its own PO token, different clients) still succeeds.
   // So always try the resolver before giving up — never take WEB_REMIX's
-  // playability verdict as final. If server extraction is unavailable, the
-  // final URL is an internal marker consumed by audioEngine; it mounts the
-  // official YouTube IFrame player on the device and never exposes a signed
-  // media URL to this provider or the rest of the UI.
+  // playability verdict as final. Only a resolved audio URL counts as success.
   devLog('no direct-url audio-only format available, trying stream proxy fallback', videoId, 'status:', status);
   const proxied = await resolveViaStreamProxy(videoId, options?.signal);
   if (proxied) {
@@ -77,9 +79,11 @@ export async function getAudioStream(videoId: string, options?: MusicServiceOpti
     return proxied;
   }
 
-  if (status !== PLAYABLE_STATUS) devLog('using device fallback despite WEB_REMIX status', status, reason);
-  devLog('stream selected (YouTube device fallback)', videoId);
-  return { url: createEmbeddedPlaybackUrl(videoId), mimeType: 'video/youtube' };
+  devLog('no playable YouTube stream', videoId, status, reason);
+  throw new YouTubeMusicError(
+    'YouTube playback is unavailable. Search this song again in the current catalog.',
+    'NO_AUDIO_STREAM'
+  );
 }
 
 export async function getLyrics(videoId: string, options?: MusicServiceOptions): Promise<string | null> {
@@ -166,9 +170,10 @@ export async function getStreamUrlCached(
   trackId: string,
   options?: MusicServiceOptions & { forceRefresh?: boolean }
 ): Promise<string> {
+  if (options?.signal?.aborted) throw new Error('Request was cancelled.');
   if (!options?.forceRefresh) {
     const cached = streamCache.get(trackId);
-    if (cached) return cached.stream.url;
+    if (cached && Date.now() - cached.fetchedAt < 120000) return cached.stream.url;
   }
   const stream = await getAudioStream(trackId, options);
   streamCache.set(trackId, { stream, fetchedAt: Date.now() });

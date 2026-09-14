@@ -11,7 +11,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { VinylDisc } from '@/components/VinylDisc';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 import { HOME_DISCOVERY_QUERY } from '@/constants/discovery';
-import { getDiscoveryTracks } from '@/services/youtubeMusic';
+import { getDiscoveryTracks } from '@/services/musicService';
 import { useCurrentTrack, usePlayerStore } from '@/store/playerStore';
 import type { Track } from '@/types/music';
 import { greetingForHour } from '@/utils/format';

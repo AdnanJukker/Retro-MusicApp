@@ -45,6 +45,7 @@ export default function SearchScreen() {
     ListHeaderComponent={<>
       <View style={styles.header}>
         <Text style={Type.headlineLg}>Discover</Text>
+        <Text style={[Type.bodySm, { color: Colors.textSecondary }]}>Music from JioSaavn</Text>
       </View>
       <View style={styles.section}>
         <View style={styles.searchField}>

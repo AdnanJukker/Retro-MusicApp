@@ -15,29 +15,6 @@ function devLog(...args: unknown[]): void {
   if (__DEV__) console.log('[youtubeMusic:streamResolver]', ...args);
 }
 
-const RESOLVER_HEALTH_TIMEOUT_MS = 4000;
-
-async function resolverHasProxy(baseUrl: string, signal?: AbortSignal): Promise<boolean> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), RESOLVER_HEALTH_TIMEOUT_MS);
-  const onExternalAbort = () => controller.abort();
-  signal?.addEventListener('abort', onExternalAbort);
-
-  try {
-    const response = await fetch(`${baseUrl}/health`, { signal: controller.signal });
-    if (!response.ok) return false;
-    const health = await response.json() as { youtubeProxyConfigured?: boolean };
-    // Old resolver versions did not expose this field, so preserve their
-    // previous behavior. Current deployments explicitly report true/false.
-    return health.youtubeProxyConfigured !== false;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timeoutId);
-    signal?.removeEventListener('abort', onExternalAbort);
-  }
-}
-
 function selectBestPipedStream(streams: PipedAudioStream[]): AudioStream | null {
   const playable = streams.filter(
     (s): s is PipedAudioStream & { url: string } => typeof s.url === 'string' && s.url.length > 0 && s.videoOnly !== true
@@ -67,6 +44,7 @@ function selectBestPipedStream(streams: PipedAudioStream[]): AudioStream | null 
 }
 
 async function fetchFromInstance(baseUrl: string, videoId: string, signal?: AbortSignal): Promise<AudioStream> {
+  if (signal?.aborted) throw new Error('Request was cancelled.');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), STREAM_RESOLVER_TIMEOUT_MS);
   const onExternalAbort = () => controller.abort();
@@ -87,6 +65,7 @@ async function fetchFromInstance(baseUrl: string, videoId: string, signal?: Abor
 }
 
 async function fetchFromSelfHostedResolver(baseUrl: string, videoId: string, signal?: AbortSignal): Promise<AudioStream> {
+  if (signal?.aborted) throw new Error('Request was cancelled.');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), SELF_HOSTED_RESOLVER_TIMEOUT_MS);
   const onExternalAbort = () => controller.abort();
@@ -113,27 +92,23 @@ async function fetchFromSelfHostedResolver(baseUrl: string, videoId: string, sig
 /**
  * Best-effort fallback used only when InnerTube's own response has no direct
  * URL. Tries your self-hosted resolver first (see `server/README.md`) if
- * `EXPO_PUBLIC_STREAM_RESOLVER_URL` is set and reports a configured YouTube
- * proxy — it's the one fallback under your own control and stays current since
+ * `EXPO_PUBLIC_STREAM_RESOLVER_URL` is set — it stays current since
  * it's backed by `yt-dlp`. Falls back to racing public Piped instances
- * (frequently down) if that's unset, unproxied, or fails.
+ * (frequently down) if that's unset or fails.
  * Resolves to `null` (never throws) if everything fails, so the caller can
  * surface a clean `NO_AUDIO_STREAM` error instead of an unhelpful proxy one.
  */
 export async function resolveViaStreamProxy(videoId: string, signal?: AbortSignal): Promise<AudioStream | null> {
+  if (signal?.aborted) return null;
   const selfHosted = getSelfHostedResolverUrl();
   if (selfHosted) {
-    if (await resolverHasProxy(selfHosted, signal)) {
-      try {
-        return await fetchFromSelfHostedResolver(selfHosted, videoId, signal);
-      } catch (err) {
-        devLog('self-hosted resolver failed, falling back to public instances', err instanceof Error ? err.message : err);
-      }
-    } else {
-      devLog('self-hosted resolver has no working proxy; skipping extraction');
+    try {
+      return await fetchFromSelfHostedResolver(selfHosted, videoId, signal);
+    } catch (err) {
+      devLog('self-hosted resolver failed, falling back to public instances', err instanceof Error ? err.message : err);
     }
   }
-
+  if (signal?.aborted) return null;
   const instances = getStreamResolverInstances();
   if (instances.length === 0) return null;
 

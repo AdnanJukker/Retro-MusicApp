@@ -34,7 +34,7 @@ export interface Track {
   year?: number;
   format?: string;
   /** Where this track came from — lets code tell curated content from a live search result if it ever needs to. */
-  source?: 'mock' | 'music-api' | 'youtube-music';
+  source?: 'mock' | 'music-api' | 'youtube-music' | 'jiosaavn';
 }
 
 export interface Album {
