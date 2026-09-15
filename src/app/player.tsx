@@ -65,8 +65,8 @@ export default function PlayerScreen() {
         </Pressable>
         <View style={styles.nowPlayingPill}>
           <Feather name="activity" size={12} color={Colors.accent} />
-          <Text style={[Type.labelCaps, styles.nowPlayingText]}>Now Playing</Text>
-          <View style={styles.pulseDot} />
+          <Text style={[Type.labelCaps, styles.nowPlayingText]}>{error ? 'Playback paused' : isLoading ? 'Tuning in' : isPlaying ? 'Now playing' : 'On the deck'}</Text>
+          <View style={[styles.pulseDot, !isPlaying && styles.inactiveDot]} />
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Show lyrics" onPress={() => router.push('/lyrics')} style={styles.chevronButton}>
           <Feather name="align-left" size={16} color={Colors.ink} />
@@ -74,7 +74,7 @@ export default function PlayerScreen() {
       </View>
 
       <View style={styles.badgeRow}>
-        <TechBadge label={isLoading ? 'TUNING IN' : isPlaying ? 'ON AIR' : 'PAUSED'} tone="accent" />
+        <TechBadge label={track.source === 'jiosaavn' ? 'JIOSAAVN' : 'YOUTUBE MUSIC'} tone="accent" />
         <TechBadge label={`TRACK ${currentIndex + 1} / ${queue.length}`} />
       </View>
 
@@ -169,12 +169,15 @@ export default function PlayerScreen() {
       </View>
 
       {queue.length > 1 ? <View style={styles.queueSection}>
-        <Text style={Type.headlineMd}>On the deck</Text>
-        <Text style={[Type.bodySm, { color: Colors.textSecondary }]}>Your current listening queue</Text>
+        <View style={styles.queueHeader}>
+          <View style={{ flex: 1, gap: 3 }}><Text style={Type.headlineMd}>On the deck</Text><Text style={[Type.bodySm, { color: Colors.textSecondary }]}>{queue.length} songs in this session</Text></View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Open playback settings" onPress={() => router.push('/settings')} style={styles.chevronButton}><Feather name="sliders" size={18} color={Colors.ink} /></Pressable>
+        </View>
         {queue.map((item, index) => (
           <Pressable key={`${item.id}-${index}`} accessibilityRole="button" accessibilityLabel={`Play ${item.title}`} accessibilityState={{ selected: index === currentIndex }} onPress={() => playTrack(item, queue)} style={[styles.queueRow, index === currentIndex && { backgroundColor: Colors.accentSoft }]}>
             <Text style={[Type.techMd, { color: Colors.accent }]}>{String(index + 1).padStart(2, '0')}</Text>
-            <Text style={[Type.bodyMdSemiBold, { flex: 1 }]} numberOfLines={2}>{item.title}</Text>
+            <AlbumArt size={38} label={item.title} artworkUrl={item.artwork} seed={item.art} showInitial={false} />
+            <View style={styles.queueCopy}><Text style={Type.bodyMdSemiBold} numberOfLines={1}>{item.title}</Text>{item.artist ? <Text style={[Type.bodySm, { color: Colors.textSecondary }]} numberOfLines={1}>{item.artist}</Text> : null}</View>
             <Feather name={index === currentIndex ? 'disc' : 'play'} size={16} color={Colors.accent} />
           </Pressable>
         ))}
@@ -184,8 +187,10 @@ export default function PlayerScreen() {
 }
 
 const styles = StyleSheet.create({
-  queueSection: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xxl, gap: Spacing.sm },
-  queueRow: { minHeight: 52, padding: Spacing.md, gap: Spacing.md, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.hairline },
+  queueSection: { marginHorizontal: Spacing.lg, padding: Spacing.md, backgroundColor: Colors.surfaceRaised, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.hairline, borderRadius: 14, gap: Spacing.sm },
+  queueHeader: { flexDirection: 'row', alignItems: 'center', padding: Spacing.xs },
+  queueCopy: { flex: 1, gap: 2 },
+  queueRow: { minHeight: 62, padding: Spacing.sm, gap: Spacing.sm, flexDirection: 'row', alignItems: 'center', borderRadius: Radius.md },
   flex: { flex: 1, backgroundColor: Colors.background },
   emptyWrap: { paddingHorizontal: Spacing.lg },
   emptyCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
@@ -215,6 +220,7 @@ const styles = StyleSheet.create({
   },
   nowPlayingText: { fontSize: 11 },
   pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.accent },
+  inactiveDot: { backgroundColor: Colors.well },
   badgeRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -240,6 +246,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.lg,
+    paddingVertical: Spacing.xl,
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.hairline,
   },
   discLayer: {
     marginRight: -202,

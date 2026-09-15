@@ -5,6 +5,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GenreChip } from '@/components/GenreChip';
 import { SectionHeader } from '@/components/SectionHeader';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { TrackRow } from '@/components/TrackRow';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 import { mockGenres } from '@/data';
@@ -43,10 +44,7 @@ export default function SearchScreen() {
         onPress={() => current?.id === track.id ? togglePlayPause() : playTrack(track, results)} />
     )}
     ListHeaderComponent={<>
-      <View style={styles.header}>
-        <Text style={Type.headlineLg}>Discover</Text>
-        <Text style={[Type.bodySm, { color: Colors.textSecondary }]}>Music from JioSaavn</Text>
-      </View>
+      <ScreenHeader title="Find your sound" subtitle="Songs, artists, and a little discovery." eyebrow="Discover / JioSaavn" />
       <View style={styles.section}>
         <View style={styles.searchField}>
           <Feather name="search" size={18} color={Colors.textSecondary} />
@@ -68,8 +66,9 @@ export default function SearchScreen() {
         <View style={styles.section}>
           <Text style={[Type.labelCaps, styles.groupLabel]}>Try searching</Text>
           <View style={styles.suggestionList}>
-            {SUGGESTED_SEARCHES.map((term) => <Pressable key={term} accessibilityRole="button" accessibilityLabel={`Search ${term}`} onPress={() => setQuery(term)} style={styles.suggestionRow}>
-              <Text style={Type.bodyMd}>{term}</Text>
+            {SUGGESTED_SEARCHES.map((term, index) => <Pressable key={term} accessibilityRole="button" accessibilityLabel={`Search ${term}`} onPress={() => setQuery(term)} style={({ pressed }) => [styles.suggestionRow, pressed && styles.suggestionPressed]}>
+              <Text style={[Type.techSm, styles.suggestionNumber]}>{String(index + 1).padStart(2, '0')}</Text>
+              <Text style={[Type.bodyMdSemiBold, { flex: 1 }]}>{term}</Text>
               <Feather name="arrow-up-left" size={14} color={Colors.textSecondary} />
             </Pressable>)}
           </View>
@@ -98,20 +97,16 @@ const styles = StyleSheet.create({
   resultsHeader: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.sm },
   clearButton: { minHeight: 44, minWidth: 36, alignItems: 'center', justifyContent: 'center' },
   flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
   section: { marginBottom: Spacing.xl, paddingHorizontal: Spacing.lg },
   searchField: {
-    minHeight: 52,
+    minHeight: 56,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.hairline,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceRaised,
+    borderRadius: 12,
     paddingHorizontal: Spacing.md,
   },
   input: {
@@ -129,15 +124,22 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   suggestionList: {
-    gap: Spacing.xs,
+    gap: Spacing.sm,
   },
   suggestionRow: {
-    minHeight: 44,
+    minHeight: 58,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    padding: Spacing.md,
+    gap: Spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.hairline,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
   },
+  suggestionNumber: { color: Colors.accent },
+  suggestionPressed: { backgroundColor: Colors.accentSoft },
   centerState: {
     alignItems: 'center',
     justifyContent: 'center',

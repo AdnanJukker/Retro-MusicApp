@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Colors, Type } from '@/constants/theme';
+import { useArtworkMotion } from '@/hooks/useArtworkMotion';
 import type { ArtSeed } from '@/types/music';
 
 const PALETTES: Record<ArtSeed['palette'], string> = {
@@ -29,9 +30,10 @@ interface VinylDiscProps {
 
 export function VinylDisc({ size, spinning, seed, label = 'SIDE A', style }: VinylDiscProps) {
   const rotation = useSharedValue(0);
+  const motionEnabled = useArtworkMotion();
 
   useEffect(() => {
-    if (spinning) {
+    if (spinning && motionEnabled) {
       rotation.value = withRepeat(
         withTiming(rotation.value + 360, { duration: 6000, easing: Easing.linear }),
         -1,
@@ -42,7 +44,7 @@ export function VinylDisc({ size, spinning, seed, label = 'SIDE A', style }: Vin
     }
     return () => cancelAnimation(rotation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spinning]);
+  }, [spinning, motionEnabled]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],

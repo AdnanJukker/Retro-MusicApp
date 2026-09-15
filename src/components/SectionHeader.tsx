@@ -13,7 +13,7 @@ export function SectionHeader({ title, meta, dotColor = Colors.ink }: SectionHea
     <View style={styles.row}>
       <View style={styles.titleRow}>
         <View style={[styles.dot, { backgroundColor: dotColor }]} />
-        <Text style={Type.headlineMd}>{title}</Text>
+        <Text style={[Type.headlineMd, { flexShrink: 1 }]}>{title}</Text>
       </View>
       {meta ? <Text style={[Type.techSm, styles.meta]}>{meta}</Text> : null}
     </View>
@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   titleRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
@@ -40,6 +41,8 @@ const styles = StyleSheet.create({
     height: 7,
   },
   meta: {
+    flexShrink: 1,
+    textAlign: 'right',
     color: Colors.textSecondary,
   },
 });

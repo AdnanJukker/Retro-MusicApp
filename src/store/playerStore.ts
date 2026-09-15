@@ -17,6 +17,10 @@ interface PlayerState {
   duration: number;
   shuffle: boolean;
   repeat: RepeatMode;
+  continueQueue: boolean;
+  saveHistory: boolean;
+  animateArtwork: boolean;
+  compactRows: boolean;
   favorites: Track[];
   history: Track[];
   followedArtists: string[];
@@ -30,6 +34,12 @@ interface PlayerState {
   previousTrack: () => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
+  setRepeat: (mode: RepeatMode) => void;
+  setContinueQueue: (value: boolean) => void;
+  setSaveHistory: (value: boolean) => void;
+  setAnimateArtwork: (value: boolean) => void;
+  setCompactRows: (value: boolean) => void;
+  resetPreferences: () => void;
   seekTo: (seconds: number) => void;
   toggleFavorite: (track: Track) => void;
   toggleFollowArtist: (id: string) => void;
@@ -129,7 +139,7 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
       isPlaying: status.playing,
       isLoading: !status.isLoaded || status.isBuffering,
     });
-    if (status.playing && recordedTrackId !== track.id) {
+    if (status.playing && state.saveHistory && recordedTrackId !== track.id) {
       recordedTrackId = track.id;
       set({ history: [track, ...get().history.filter((item) => item.id !== track.id)].slice(0, 40) });
     }
@@ -140,13 +150,15 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
         void audioEngine.seekTo(0).then(() => {
           if (request === activeRequest && !activeRequest?.signal.aborted && intent === playIntentVersion) audioEngine.play();
         }).catch((error) => { if (request === activeRequest) fail(error); });
-      } else get().nextTrack();
+      } else if (state.continueQueue) get().nextTrack();
+      else get().pauseTrack();
     }
   });
 
   return {
     queue: [], currentIndex: 0, isPlaying: false, isLoading: false,
     position: 0, duration: 0, shuffle: false, repeat: 'off',
+    continueQueue: true, saveHistory: true, animateArtwork: true, compactRows: false,
     favorites: [], history: [], followedArtists: [], error: null,
     playTrack: (track, queue) => {
       const nextQueue = queue?.some((item) => item.id === track.id) ? queue : [track];
@@ -194,6 +206,12 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
     },
     toggleShuffle: () => set((state) => ({ shuffle: !state.shuffle })),
     toggleRepeat: () => set((state) => ({ repeat: state.repeat === 'off' ? 'all' : state.repeat === 'all' ? 'one' : 'off' })),
+    setRepeat: (repeat) => set({ repeat }),
+    setContinueQueue: (continueQueue) => set({ continueQueue }),
+    setSaveHistory: (saveHistory) => set({ saveHistory }),
+    setAnimateArtwork: (animateArtwork) => set({ animateArtwork }),
+    setCompactRows: (compactRows) => set({ compactRows }),
+    resetPreferences: () => set({ shuffle: false, repeat: 'off', continueQueue: true, saveHistory: true, animateArtwork: true, compactRows: false }),
     seekTo: (seconds) => {
       const { duration, isLoading } = get();
       if (!Number.isFinite(seconds) || duration <= 0 || isLoading) return;
@@ -218,14 +236,19 @@ export const usePlayerStore = create<PlayerState>()(persist((set, get) => {
       invalidateStreamUrl(track.id);
       void resolveAndPlay(track, true);
     },
-    clearHistory: () => set({ history: [] }),
+    clearHistory: () => {
+      recordedTrackId = get().queue[get().currentIndex]?.id ?? null;
+      set({ history: [] });
+    },
     clearFavorites: () => set({ favorites: [] }),
   };
 }, {
   name: 'hifi-library-v1',
   storage: createJSONStorage(() => libraryStorage),
   skipHydration: true,
-  partialize: ({ favorites, history, followedArtists, shuffle, repeat }) => ({ favorites, history, followedArtists, shuffle, repeat }),
+  partialize: ({ favorites, history, followedArtists, shuffle, repeat, continueQueue, saveHistory, animateArtwork, compactRows }) => (
+    { favorites, history, followedArtists, shuffle, repeat, continueQueue, saveHistory, animateArtwork, compactRows }
+  ),
 }));
 
 export function useCurrentTrack(): Track | null {

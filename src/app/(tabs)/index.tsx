@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { AlbumArt } from '@/components/AlbumArt';
 import { AlbumCard } from '@/components/AlbumCard';
 import { RetroButton } from '@/components/RetroButton';
 import { SectionHeader } from '@/components/SectionHeader';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { VinylDisc } from '@/components/VinylDisc';
 import { Colors, Radius, Spacing, Type } from '@/constants/theme';
 import { HOME_DISCOVERY_QUERY } from '@/constants/discovery';
@@ -19,6 +20,8 @@ import { greetingForHour } from '@/utils/format';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const sleeveSize = Math.min(208, (Math.min(width, 720) - 88) / 1.45);
 
   const history = usePlayerStore((s) => s.history);
   const recentlyPlayed = useMemo(() => history.slice(0, 8), [history]);
@@ -73,37 +76,21 @@ export default function HomeScreen() {
       refreshControl={<RefreshControl refreshing={picksLoading && refreshKey > 0} onRefresh={refresh} tintColor={Colors.accent} />}
       showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.greetingRow}>
-            <View style={styles.greetingDot} />
-            <Text style={Type.headlineLg}>{greeting}</Text>
-          </View>
-          <Text style={[Type.bodySm, styles.subGreeting]}>What do you want to hear?</Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-          onPress={() => router.push('/settings')}
-          style={styles.iconButton}
-          hitSlop={8}>
-          <Feather name="settings" size={19} color={Colors.ink} />
-        </Pressable>
-      </View>
+      <ScreenHeader title={greeting} subtitle="Find your next favorite record." eyebrow="Hi-Fi Archive / Vol. 01" />
 
       {/* Hero: Now Playing */}
       {heroTrack ? (
         <View style={styles.heroSection}>
-          <SectionHeader title={current ? 'Now Playing' : 'Recently Playing'} />
+          <SectionHeader title={current ? 'On the turntable' : 'Ready to play'} meta={current ? isLoading ? 'Loading' : isPlaying ? 'On air' : 'Paused' : 'Selected for you'} />
           <View style={styles.heroArtRow}>
-            <View style={styles.discWrap}>
-              <VinylDisc size={168} spinning={Boolean(current) && isPlaying} seed={heroTrack.art} />
+            <View style={{ marginRight: -sleeveSize * 0.35 }}>
+              <VinylDisc size={sleeveSize * 0.8} spinning={Boolean(current) && isPlaying} seed={heroTrack.art} />
             </View>
             <AlbumArt
               seed={heroTrack.art}
               artworkUrl={heroTrack.artwork}
               label={heroTrack.title}
-              size={208}
+              size={sleeveSize}
               catalogId={heroTrack.id}
             />
           </View>
@@ -148,7 +135,7 @@ export default function HomeScreen() {
         <View style={styles.welcomeSection}>
           <Feather name="search" size={28} color={Colors.accent} />
           <Text style={Type.headlineMd}>Find something to play</Text>
-          <Text style={[Type.bodyMd, styles.welcomeText]}>Search millions of tracks.</Text>
+          <Text style={[Type.bodyMd, styles.welcomeText]}>A favorite song is a good place to start.</Text>
           <RetroButton label="Find Music" icon="arrow-right" onPress={() => router.navigate('/search')} />
         </View>
       )}
@@ -206,33 +193,13 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.xl,
-  },
-  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  greetingDot: { width: 6, height: 6, backgroundColor: Colors.accent },
-  subGreeting: { color: Colors.textSecondary, marginTop: 2 },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Radius.full,
-  },
-  heroSection: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.xxl },
+  heroSection: { padding: Spacing.lg, marginHorizontal: Spacing.lg, marginBottom: Spacing.xxl, backgroundColor: Colors.surfaceRaised, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.hairline },
   heroArtRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: Spacing.lg,
     marginBottom: Spacing.lg,
-  },
-  discWrap: {
-    marginRight: -58,
   },
   heroInfo: {
     alignItems: 'center',
@@ -255,7 +222,7 @@ const styles = StyleSheet.create({
   heroPlayButton: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: Radius.full,
     backgroundColor: Colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
@@ -264,7 +231,11 @@ const styles = StyleSheet.create({
   welcomeSection: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.xxl,
-    paddingVertical: Spacing.xl,
+    padding: Spacing.xxl,
+    backgroundColor: Colors.surfaceRaised,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.hairline,
     alignItems: 'center',
     gap: Spacing.sm,
   },

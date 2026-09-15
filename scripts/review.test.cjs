@@ -154,7 +154,7 @@ test('favorites and follows rehydrate without restoring playback or temporary er
   f.store.getState().playTrack(b);
   await tick();
   const value = JSON.parse(f.saved.get('hifi-library-v1'));
-  assert.deepEqual(Object.keys(value.state).sort(), ['favorites', 'followedArtists', 'history', 'repeat', 'shuffle']);
+  assert.deepEqual(Object.keys(value.state).sort(), ['animateArtwork', 'compactRows', 'continueQueue', 'favorites', 'followedArtists', 'history', 'repeat', 'saveHistory', 'shuffle']);
   const restored = fixture();
   restored.saved.set('hifi-library-v1', JSON.stringify(value));
   await restored.store.persist.rehydrate();
@@ -162,6 +162,93 @@ test('favorites and follows rehydrate without restoring playback or temporary er
   assert.deepEqual(restored.store.getState().followedArtists, ['artist']);
   assert.equal(restored.store.getState().queue.length, 0);
   assert.equal(restored.store.getState().isPlaying, false);
+});
+
+test('continue queue can stop automatic advancement without disabling manual next', async () => {
+  const f = fixture();
+  f.store.getState().setContinueQueue(false);
+  f.store.getState().playQueue([a, b]);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit({ playing: false, didJustFinish: true, currentTime: 180 });
+  assert.equal(f.store.getState().currentIndex, 0);
+  assert.equal(f.store.getState().isPlaying, false);
+  assert.equal(f.pending.length, 1);
+  f.store.getState().nextTrack();
+  assert.equal(f.store.getState().currentIndex, 1);
+  assert.equal(f.pending[1].id, 'b');
+});
+
+test('repeat one still repeats the current song when automatic queue continuation is off', async () => {
+  const f = fixture();
+  f.store.getState().setContinueQueue(false);
+  f.store.getState().setRepeat('one');
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit({ playing: false, didJustFinish: true, currentTime: 180 });
+  await tick();
+  assert.equal(f.seek(), 0);
+  assert.equal(f.active(), true);
+  assert.equal(f.pending.length, 1);
+});
+
+test('history preference prevents new entries and clearing does not repopulate the current song', async () => {
+  const f = fixture();
+  f.store.getState().setSaveHistory(false);
+  f.store.getState().playTrack(a);
+  f.pending[0].resolve('https://example.test/a');
+  await tick();
+  f.emit();
+  assert.deepEqual(f.store.getState().history, []);
+  f.store.getState().setSaveHistory(true);
+  f.emit({ currentTime: 1 });
+  assert.equal(f.store.getState().history[0].id, 'a');
+  f.store.getState().clearHistory();
+  f.emit({ currentTime: 2 });
+  assert.deepEqual(f.store.getState().history, []);
+});
+
+test('preferences persist across launches and resetting them preserves the library', async () => {
+  const f = fixture();
+  f.store.getState().toggleFavorite(a);
+  f.store.getState().toggleFollowArtist('artist');
+  f.store.getState().setContinueQueue(false);
+  f.store.getState().setSaveHistory(false);
+  f.store.getState().setAnimateArtwork(false);
+  f.store.getState().setCompactRows(true);
+  f.store.getState().setRepeat('all');
+  f.store.getState().toggleShuffle();
+  await tick();
+  const restored = fixture();
+  restored.saved.set('hifi-library-v1', f.saved.get('hifi-library-v1'));
+  await restored.store.persist.rehydrate();
+  const preferences = restored.store.getState();
+  assert.equal(preferences.continueQueue, false);
+  assert.equal(preferences.saveHistory, false);
+  assert.equal(preferences.animateArtwork, false);
+  assert.equal(preferences.compactRows, true);
+  assert.equal(preferences.repeat, 'all');
+  assert.equal(preferences.shuffle, true);
+  preferences.resetPreferences();
+  const reset = restored.store.getState();
+  assert.equal(reset.continueQueue && reset.saveHistory && reset.animateArtwork, true);
+  assert.equal(reset.compactRows || reset.shuffle, false);
+  assert.equal(reset.repeat, 'off');
+  assert.equal(reset.favorites[0].id, 'a');
+  assert.deepEqual(reset.followedArtists, ['artist']);
+});
+
+test('older saved libraries receive preference defaults without losing favorites', async () => {
+  const f = fixture();
+  f.saved.set('hifi-library-v1', JSON.stringify({ state: { favorites: [a], history: [b], shuffle: true, repeat: 'one' }, version: 0 }));
+  await f.store.persist.rehydrate();
+  const state = f.store.getState();
+  assert.equal(state.continueQueue && state.saveHistory && state.animateArtwork, true);
+  assert.equal(state.compactRows, false);
+  assert.equal(state.favorites[0].id, 'a');
+  assert.equal(state.history[0].id, 'b');
+  assert.equal(state.repeat, 'one');
 });
 
 test('seek clamps position and ignores non-finite values', async () => {

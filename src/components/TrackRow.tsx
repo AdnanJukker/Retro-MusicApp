@@ -35,6 +35,7 @@ export function TrackRow({
 }: TrackRowProps) {
   const router = useRouter();
   const togglePlayPause = usePlayerStore((state) => state.togglePlayPause);
+  const compactRows = usePlayerStore((state) => state.compactRows);
   const isDemo = track.source !== 'youtube-music' && track.source !== 'jiosaavn';
   const activate = isDemo ? () => router.navigate({ pathname: '/search', params: { q: track.artist ?? track.genre ?? track.title } }) : isActive ? togglePlayPause : onPress;
   const favoriteAction = !isDemo && onToggleFavorite;
@@ -44,7 +45,7 @@ export function TrackRow({
   const subtitleText = subtitle ?? [track.artist, track.year].filter(Boolean).join(' • ');
 
   return (
-    <View style={[styles.row, isActive && styles.active]}>
+    <View style={[styles.row, compactRows && styles.compactRow, isActive && styles.active]}>
       <Pressable accessibilityRole="button" accessibilityLabel={`${isDemo ? 'Find music like' : isActive && isPlaying ? 'Pause' : 'Play'} ${track.title}${track.artist ? ` by ${track.artist}` : ''}`} accessibilityState={{ selected: isActive }} onPress={activate} style={({ pressed }) => [styles.trackButton, pressed && styles.pressed]}>
       {index !== undefined ? (
         <View style={styles.indexSlot}>
@@ -62,7 +63,7 @@ export function TrackRow({
           seed={track.art}
           artworkUrl={track.artwork}
           label={track.title}
-          size={42}
+          size={compactRows ? 38 : 48}
           catalogId={track.id}
           style={styles.art}
         />
@@ -99,13 +100,17 @@ export function TrackRow({
 
 const styles = StyleSheet.create({
   trackButton: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: 52 },
-  active: { backgroundColor: Colors.accentSoft, borderLeftWidth: 3, borderLeftColor: Colors.accent },
+  active: { backgroundColor: Colors.accentSoft, borderLeftColor: Colors.accent },
+  compactRow: { paddingVertical: Spacing.xs },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: 'transparent',
+    borderRadius: Radius.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.hairline,
   },

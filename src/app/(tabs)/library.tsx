@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PlaylistCard } from '@/components/PlaylistCard';
 import { RetroButton } from '@/components/RetroButton';
 import { TrackRow } from '@/components/TrackRow';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { Colors, Spacing, Type } from '@/constants/theme';
 import { mockPlaylists } from '@/data';
 import { useCurrentTrack, usePlayerStore } from '@/store/playerStore';
@@ -81,23 +82,22 @@ export default function LibraryScreen() {
 
   const likedTracks = usePlayerStore((s) => s.favorites);
   const history = usePlayerStore((s) => s.history);
+  const saveHistory = usePlayerStore((s) => s.saveHistory);
+  const playQueue = usePlayerStore((s) => s.playQueue);
 
   return (
     <ScrollView
       style={styles.flex}
       contentContainerStyle={{ paddingTop: insets.top + Spacing.sm, paddingBottom: Spacing.xxxl }}
       showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={Type.headlineLg}>Your Library</Text>
-      </View>
+      <ScreenHeader title="Your collection" subtitle="The records you keep coming back to." eyebrow="Your library / On this device" />
 
       <View style={styles.tabBar}>
         {TABS.map((t) => {
           const active = tab === t.id;
           return (
-            <Pressable key={t.id} accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={() => setTab(t.id)} style={styles.tabItem}>
+            <Pressable key={t.id} accessibilityRole="tab" accessibilityState={{ selected: active }} onPress={() => setTab(t.id)} style={[styles.tabItem, active && styles.tabItemActive]}>
               <Text style={[Type.bodyMdSemiBold, active ? styles.tabLabelActive : styles.tabLabel]}>{t.label}</Text>
-              {active ? <View style={styles.tabIndicator} /> : null}
             </Pressable>
           );
         })}
@@ -115,7 +115,14 @@ export default function LibraryScreen() {
             />
           ) : (
             <View>
-              <Text style={[Type.bodySm, styles.countLabel]}>{likedTracks.length} liked songs</Text>
+              <View style={styles.likedSummary}>
+                <View style={styles.likedIcon}><Feather name="heart" size={24} color={Colors.accent} /></View>
+                <View style={styles.likedCopy}>
+                  <Text style={Type.headlineMd}>Your favorites</Text>
+                  <Text style={[Type.bodySm, styles.countLabel]}>{likedTracks.length} {likedTracks.length === 1 ? 'song' : 'songs'} worth keeping</Text>
+                </View>
+                <RetroButton label="Play all" icon="play" onPress={() => playQueue(likedTracks)} />
+              </View>
               <TrackList tracks={likedTracks} isFavoriteList />
             </View>
           )
@@ -139,13 +146,16 @@ export default function LibraryScreen() {
           history.length === 0 ? (
             <EmptyState
               icon="clock"
-              title="Nothing played yet"
-              message="Songs you play will show up here."
-              actionLabel="Discover Music"
-              onAction={() => router.navigate('/search')}
+              title={saveHistory ? 'Nothing played yet' : 'History is paused'}
+              message={saveHistory ? 'Songs you play will show up here.' : 'Turn on recent plays in Settings to keep your listening history.'}
+              actionLabel={saveHistory ? 'Discover Music' : 'Open settings'}
+              onAction={() => router.navigate(saveHistory ? '/search' : '/settings')}
             />
           ) : (
-            <TrackList tracks={history} />
+            <View>
+              {!saveHistory ? <Text style={[Type.bodySm, styles.historyNote]}>History is paused. New plays aren’t being saved.</Text> : null}
+              <TrackList tracks={history} />
+            </View>
           )
         ) : null}
       </View>
@@ -155,28 +165,25 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Colors.background },
-  header: { paddingHorizontal: Spacing.lg, marginBottom: Spacing.lg },
   tabBar: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.xl,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Colors.hairline,
-    marginBottom: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.xs,
+    gap: Spacing.xs,
+    backgroundColor: Colors.well,
+    borderRadius: 12,
+    marginBottom: Spacing.xl,
   },
-  tabItem: { minHeight: 44, paddingBottom: Spacing.sm, justifyContent: 'center' },
+  tabItem: { flex: 1, minHeight: 44, justifyContent: 'center', alignItems: 'center', borderRadius: 8 },
+  tabItemActive: { backgroundColor: Colors.ink },
   tabLabel: { color: Colors.textSecondary },
-  tabLabelActive: { color: Colors.ink },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: -1,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: Colors.accent,
-  },
+  tabLabelActive: { color: Colors.surfaceRaised },
   content: { paddingHorizontal: Spacing.lg },
-  countLabel: { color: Colors.textSecondary, marginBottom: Spacing.md },
+  countLabel: { color: Colors.textSecondary },
+  historyNote: { color: Colors.textSecondary, marginBottom: Spacing.md },
+  likedSummary: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Spacing.md, padding: Spacing.lg, backgroundColor: Colors.surfaceRaised, borderWidth: StyleSheet.hairlineWidth, borderColor: Colors.hairline, borderRadius: 14, marginBottom: Spacing.lg },
+  likedIcon: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 24, backgroundColor: Colors.accentSoft },
+  likedCopy: { flex: 1, minWidth: 100, gap: Spacing.xs },
   emptyState: {
     paddingVertical: Spacing.xxxl,
     alignItems: 'center',

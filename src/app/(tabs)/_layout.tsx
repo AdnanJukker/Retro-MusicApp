@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceRaised,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.hairlineStrong,
+    paddingHorizontal: Spacing.sm,
   },
   tabTrigger: {
     flex: 1,
@@ -65,12 +66,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 2,
-    borderTopColor: 'transparent',
+    paddingVertical: Spacing.sm,
+    marginVertical: 5,
+    marginHorizontal: 4,
+    borderRadius: 10,
   },
   tabInnerActive: {
-    borderTopColor: Colors.accent,
+    backgroundColor: Colors.accentSoft,
   },
   tabLabel: {
     fontSize: 10,

@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Colors } from '@/constants/theme';
+import { useArtworkMotion } from '@/hooks/useArtworkMotion';
 
 interface EqualizerBarsProps {
   active?: boolean;
@@ -56,10 +57,11 @@ function Bar({ active, color, height, delay }: { active: boolean; color: string;
 }
 
 export function EqualizerBars({ active = true, color = Colors.accent, size = 14 }: EqualizerBarsProps) {
+  const motionEnabled = useArtworkMotion();
   return (
     <View style={[styles.row, { height: size }]}>
       {HEIGHTS.map((h, i) => (
-        <Bar key={i} active={active} color={color} height={h} delay={DELAYS[i]} />
+        <Bar key={i} active={active && motionEnabled} color={color} height={h} delay={DELAYS[i]} />
       ))}
     </View>
   );

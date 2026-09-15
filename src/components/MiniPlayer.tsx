@@ -21,12 +21,11 @@ export function MiniPlayer() {
   if (!track) return null;
 
   const ratio = duration > 0 ? Math.min(1, position / duration) : 0;
-  // No artist metadata on a live search result just means we don't show a
-  // second line — an error always takes priority when there is one.
-  const subtitle = error ?? track.artist ?? null;
+  // Playback state fills in missing metadata; errors always take priority.
+  const subtitle = error ?? (isLoading ? 'Tuning in…' : track.artist || (isPlaying ? 'Now playing' : 'Paused'));
 
   return (
-    <View style={[styles.wrap, { height: MiniPlayerHeight }]}>
+    <View style={[styles.wrap, { minHeight: MiniPlayerHeight + 8 }]}>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${ratio * 100}%` }]} />
       </View>
@@ -42,7 +41,7 @@ export function MiniPlayer() {
           style={styles.art}
         />
         <View style={styles.info}>
-          <Text style={Type.bodyMdSemiBold} numberOfLines={1}>
+          <Text style={[Type.bodyMdSemiBold, styles.title]} numberOfLines={1}>
             {track.title}
           </Text>
           {subtitle ? (
@@ -64,7 +63,7 @@ export function MiniPlayer() {
           )}
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Next track" onPress={nextTrack} style={styles.iconButton}>
-          <Feather name="skip-forward" size={16} color={Colors.ink} />
+          <Feather name="skip-forward" size={18} color={Colors.surfaceRaised} />
         </Pressable>
       </View>
     </View>
@@ -74,17 +73,19 @@ export function MiniPlayer() {
 const styles = StyleSheet.create({
   trackButton: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: 48 },
   wrap: {
-    backgroundColor: Colors.surfaceRaised,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.hairlineStrong,
+    backgroundColor: Colors.ink,
+    marginHorizontal: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   progressTrack: {
     height: 2,
-    backgroundColor: Colors.well,
+    backgroundColor: '#514438',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.gold,
   },
   bar: {
     flex: 1,
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   info: {
     flex: 1,
@@ -101,10 +103,11 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   artist: {
-    color: Colors.textSecondary,
+    color: Colors.goldSoft,
   },
+  title: { color: Colors.surfaceRaised },
   errorText: {
-    color: Colors.accent,
+    color: Colors.goldSoft,
   },
   playButton: {
     width: 44,
