@@ -10,6 +10,11 @@ dist-review/
 web-build/
 expo-env.d.ts
 
+# Local release artifacts and build metadata
+.release/
+*.apk
+*.aab
+
 # Native
 .kotlin/
 *.orig.*

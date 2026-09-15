@@ -1,4 +1,15 @@
-# Welcome to your Expo app 👋
+# Hi-Fi Archive
+
+A retro-inspired music app built with Expo and React Native.
+
+## Download for Android
+
+Open [GitHub Releases](https://github.com/AdnanJukker/Retro-MusicApp/releases/latest)
+and download the `.apk` under **Assets**. Open it on your Android phone to install;
+Android may ask you to allow installation from your browser or file manager.
+An internet connection is required for music playback.
+
+Maintainers: see [RELEASING.md](RELEASING.md) for the build and publishing steps.
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
