@@ -31,7 +31,7 @@ npx eas-cli@24.3.0 build --platform android --profile release
 
 After the build succeeds, confirm its app version and Git commit match the
 release source. Download its APK from the EAS build page into `.release/`
-and name it `Hi-Fi-Archive-v1.0.1-android.apk`.
+and name it `RetroWave-v1.0.1-android.apk`.
 
 Install the APK on a device and check launch, search, playback, seeking, and
 saved preferences before publishing. Local automated checks do not replace
@@ -40,7 +40,7 @@ this device check.
 Create a checksum in PowerShell:
 
 ```powershell
-$apk = 'Hi-Fi-Archive-v1.0.1-android.apk'
+$apk = 'RetroWave-v1.0.1-android.apk'
 $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath ".release/$apk").Hash.ToLowerInvariant()
 Set-Content -Encoding ascii -LiteralPath '.release/SHA256SUMS.txt' -Value "$hash  $apk"
 ```
@@ -52,9 +52,9 @@ write access to this repository. Tag the exact commit shown on the successful
 EAS build, even if the branch has advanced since the build started.
 
 ```sh
-git tag -a v1.0.1 BUILD_COMMIT_SHA -m "Hi-Fi Archive v1.0.1"
+git tag -a v1.0.1 BUILD_COMMIT_SHA -m "RetroWave v1.0.1"
 git push origin refs/tags/v1.0.1
-gh release create v1.0.1 .release/Hi-Fi-Archive-v1.0.1-android.apk .release/SHA256SUMS.txt --repo AdnanJukker/Retro-MusicApp --verify-tag --draft --title "Hi-Fi Archive v1.0.1" --notes-file releases/v1.0.1.md
+gh release create v1.0.1 .release/RetroWave-v1.0.1-android.apk .release/SHA256SUMS.txt --repo AdnanJukker/Retro-MusicApp --verify-tag --draft --title "RetroWave v1.0.1" --notes-file releases/v1.0.1.md
 ```
 
 Review the draft and its two uploaded assets, then publish it:
