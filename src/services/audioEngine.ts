@@ -147,7 +147,7 @@ export async function loadAndPlay(streamUrl: string, track: Track, signal: Abort
   });
   active.setActiveForLockScreen(true, {
     title: track.title, artist: track.artist, albumTitle: track.album, artworkUrl: track.artwork,
-  });
+  }, { showSeekForward: true, showSeekBackward: true });
   active.play();
 }
 

@@ -76,7 +76,7 @@ export default function HomeScreen() {
       refreshControl={<RefreshControl refreshing={picksLoading && refreshKey > 0} onRefresh={refresh} tintColor={Colors.accent} />}
       showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <ScreenHeader title={greeting} subtitle="Find your next favorite record." eyebrow="Hi-Fi Archive / Vol. 01" />
+      <ScreenHeader title={greeting} subtitle="Find your next favorite record." eyebrow="RetroWave / Vol. 01" />
 
       {/* Hero: Now Playing */}
       {heroTrack ? (

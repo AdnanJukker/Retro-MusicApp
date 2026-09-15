@@ -82,7 +82,7 @@ export default function SettingsScreen() {
     history: { icon: 'clock', title: 'Clear recent plays?', text: `Remove ${songCount(historyCount)} from your listening history on this device. Your liked songs will stay saved.`, action: 'Clear recent plays' },
     favorites: { icon: 'heart', title: 'Clear liked songs?', text: `Remove all ${songCount(favoritesCount)} from your likes on this device. This cannot be undone.`, action: 'Clear liked songs' },
     preferences: { icon: 'sliders', title: 'Reset preferences?', text: 'Restore the default playback and appearance options. Your liked songs and listening history will stay saved.', action: 'Reset preferences' },
-    about: { icon: 'disc', title: 'Hi-Fi Archive', text: `A little space for a good record. Search music, build your library, and settle into listening.\n\nNew searches use the JioSaavn catalog. Your likes and preferences stay on this device.\n\nVersion ${version}`, action: null },
+    about: { icon: 'disc', title: 'RetroWave', text: `A little space for a good record. Search music, build your library, and settle into listening.\n\nNew searches use the JioSaavn catalog. Your likes and preferences stay on this device.\n\nVersion ${version}`, action: null },
     quality: { icon: 'headphones', title: 'Streaming quality', text: 'Audio quality is chosen by the music source. There is no manual bitrate setting.\n\nAn internet connection is needed to listen. Songs are streamed as you play; liking a song saves it to your library, not for offline playback.', action: null },
   } as const;
   const activeDialog = dialog ? dialogs[dialog] : null;
@@ -148,10 +148,10 @@ export default function SettingsScreen() {
         <SettingsRow icon="heart" label="Clear liked songs" value={songCount(favoritesCount)} disabled={favoritesCount === 0} onPress={() => open('favorites')} destructive last />
       </SettingsGroup>
       <SettingsGroup title="About the app">
-        <SettingsRow icon="info" label="About Hi-Fi Archive" value={`v${version}`} onPress={() => open('about')} />
+        <SettingsRow icon="info" label="About RetroWave" value={`v${version}`} onPress={() => open('about')} />
         <SettingsRow icon="rotate-ccw" label="Reset preferences" description="Return to the original settings." onPress={() => open('preferences')} last />
       </SettingsGroup>
-      <View style={styles.footer}><View style={styles.footerLine} /><Text style={[Type.techSm, styles.muted]}>Hi-Fi Archive · Vol. 01</Text><View style={styles.footerLine} /></View>
+      <View style={styles.footer}><View style={styles.footerLine} /><Text style={[Type.techSm, styles.muted]}>RetroWave · Vol. 01</Text><View style={styles.footerLine} /></View>
     </ScrollView>
     <Modal visible={Boolean(activeDialog)} transparent animationType={motionEnabled ? 'fade' : 'none'} onRequestClose={close}>
       <View style={styles.modalWrap}>

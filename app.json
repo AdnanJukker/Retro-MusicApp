@@ -1,15 +1,12 @@
 {
   "expo": {
-    "name": "Hi-Fi Archive",
+    "name": "RetroWave",
     "slug": "MusicApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "musicapp",
     "userInterfaceStyle": "light",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#F3E9D2",
